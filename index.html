@@ -3140,6 +3140,48 @@
       attachPreview.classList.remove('attach-preview--visible');
       updateSendButton();
     }
+
+    // =========================================================
+    // Paste image from clipboard (screenshots: Win+Shift+S → Ctrl+V, ⌘+Ctrl+Shift+4 → ⌘+V)
+    // Document-level so it works whether or not the input is focused.
+    // =========================================================
+    document.addEventListener('paste', async (e) => {
+      if (!identity) return;
+      const cd = e.clipboardData || window.clipboardData;
+      if (!cd) return;
+
+      // Collect image files from the clipboard items
+      const items = cd.items ? Array.from(cd.items) : [];
+      const imageFiles = [];
+      for (const item of items) {
+        if (item.kind === 'file' && item.type && item.type.indexOf('image/') === 0) {
+          const file = item.getAsFile();
+          if (!file) continue;
+          // Screenshots paste with no useful filename — give them a clean one
+          let named = file;
+          if (!file.name || file.name === 'image.png') {
+            const ext = (item.type.split('/')[1] || 'png').replace('jpeg', 'jpg');
+            try {
+              named = new File([file], 'pasted-' + Date.now() + '.' + ext, { type: item.type });
+            } catch (_) {
+              named = file; // older browsers without File constructor
+            }
+          }
+          imageFiles.push(named);
+        }
+      }
+
+      if (imageFiles.length === 0) return; // not an image paste — let normal text paste proceed
+
+      e.preventDefault(); // stop the browser dumping raw image data into the textarea
+
+      // If editing a message, an image paste means "attach an image instead" — exit edit mode
+      if (editingMessageId) cancelEditMode();
+
+      await addPendingImages(imageFiles);
+      showToast(imageFiles.length === 1 ? 'Screenshot pasted' : imageFiles.length + ' images pasted', 'success', 1800);
+    });
+
     function compressImage(file) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
