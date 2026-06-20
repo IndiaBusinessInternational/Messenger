@@ -2039,7 +2039,7 @@
       </div>
 
       <div class="hdr__title-block" id="hdrTitleBlock">
-        <span class="hdr__name">IBI Messenger <span class="hdr__version" id="appVersion">v5.0</span></span>
+        <span class="hdr__name">IBI Messenger <span class="hdr__version" id="appVersion">v5.1</span></span>
         <span class="hdr__sub">
           <span class="hdr__dot" id="hdrDot"></span>
           <span id="hdrStatus">You: <strong id="hdrSenderName">—</strong></span>
@@ -2078,6 +2078,10 @@
             <button type="button" class="menu__item" id="openSheetBtn" role="menuitem">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
               Open Google Sheet
+            </button>
+            <button type="button" class="menu__item" id="notifBtn" role="menuitem">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              <span id="notifBtnLabel">Notifications: Off</span>
             </button>
             <button type="button" class="menu__item" id="wallpaperBtn" role="menuitem">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
@@ -2125,6 +2129,19 @@
       <div class="install-banner__actions">
         <button type="button" class="install-banner__btn install-banner__btn--primary" id="installBtn">Install</button>
         <button type="button" class="install-banner__btn install-banner__btn--dismiss" id="installDismiss">Not now</button>
+      </div>
+    </div>
+
+    <!-- Enable-notifications prompt (reuses install-banner styling) -->
+    <div class="install-banner" id="notifBanner" style="display:none;">
+      <div class="install-banner__icon">🔔</div>
+      <div class="install-banner__text">
+        <span class="install-banner__title">Turn on notifications</span>
+        <span class="install-banner__sub">Get alerted about new messages and calls when IBI Messenger is open in the background.</span>
+      </div>
+      <div class="install-banner__actions">
+        <button type="button" class="install-banner__btn install-banner__btn--primary" id="notifEnableBtn">Enable</button>
+        <button type="button" class="install-banner__btn install-banner__btn--dismiss" id="notifPromptDismiss">Not now</button>
       </div>
     </div>
 
@@ -2951,6 +2968,7 @@
       // If this is first set-up, kick off initial fetch and polling
       if (!pollTimer) {
         initialFetch().then(startPolling);
+        setTimeout(maybeShowNotifPrompt, 3500);
       }
     });
     identityCancel.addEventListener('click', () => hideIdentityModal(false));
@@ -4032,6 +4050,10 @@
     wpBackdrop.addEventListener('click', () => closeWallpaperPanel(false));
     wpClose.addEventListener('click', () => closeWallpaperPanel(false));
 
+    // Notifications toggle (keep menu open so the label change is visible)
+    const notifBtn = $('notifBtn');
+    if (notifBtn) notifBtn.addEventListener('click', () => { toggleNotifications(); });
+
     // Custom wallpaper upload — resize/compress, store as data URL, apply
     wpInput.addEventListener('change', async (e) => {
       const file = e.target.files && e.target.files[0];
@@ -4077,6 +4099,144 @@
 
     // Apply saved wallpaper on startup
     applyWallpaper();
+
+    // =========================================================
+    // Notifications (Tier 1 — alerts while app is backgrounded/unfocused)
+    // =========================================================
+    const NOTIF_PREF_KEY = 'ibi-msgr-notif-v1';      // 'on' | 'off'
+    const NOTIF_PROMPT_KEY = 'ibi-msgr-notif-prompt-v1'; // '1' once dismissed
+    function notifPrefOn() { try { return localStorage.getItem(NOTIF_PREF_KEY) !== 'off'; } catch(_) { return true; } }
+    function notifSupported() { return ('Notification' in window); }
+    function notifPermission() { return notifSupported() ? Notification.permission : 'denied'; }
+
+    let _audioCtx = null;
+    function notifBeep(times) {
+      try {
+        _audioCtx = _audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+        if (_audioCtx.state === 'suspended') _audioCtx.resume();
+        let t = _audioCtx.currentTime;
+        for (let i = 0; i < (times || 1); i++) {
+          const osc = _audioCtx.createOscillator();
+          const gain = _audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = i % 2 ? 760 : 620;
+          gain.gain.setValueAtTime(0.0001, t);
+          gain.gain.exponentialRampToValueAtTime(0.22, t + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.24);
+          osc.connect(gain); gain.connect(_audioCtx.destination);
+          osc.start(t); osc.stop(t + 0.25);
+          t += 0.34;
+        }
+      } catch (_) {}
+    }
+
+    function notifPreview(msg) {
+      const att = msg.attachment;
+      if (att && att.kind === 'call') return (att.mode === 'video' ? '📹 Incoming video call' : '📞 Incoming voice call');
+      if (att && att.kind === 'location') return '📍 Location';
+      if (att && att.kind === 'audio') return '🎤 Voice message';
+      if (att && att.kind === 'video') return '📹 Video';
+      if (att && (att.kind === 'document' || att.fileId)) return '📎 ' + (att.name || 'Document');
+      if (msg.imageId || msg.imageDataUrl) return msg.text ? ('📷 ' + msg.text) : '📷 Photo';
+      return msg.text || 'New message';
+    }
+
+    function maybeNotify(list) {
+      if (!list || !list.length) return;
+      if (!notifPrefOn() || notifPermission() !== 'granted') return;
+      // Only alert when the app isn't in the foreground
+      const foreground = (document.visibilityState === 'visible') && document.hasFocus();
+      if (foreground) return;
+
+      let sawCall = false;
+      list.forEach(msg => {
+        const isCall = msg.attachment && msg.attachment.kind === 'call';
+        if (isCall) sawCall = true;
+        const who = (msg.sender || 'Someone').split(',')[0].trim();
+        const title = isCall ? (msg.attachment.mode === 'video' ? '📹 Incoming video call' : '📞 Incoming voice call') : who;
+        const body = isCall ? (who + ' started a call — tap Join in the chat') : notifPreview(msg);
+        try {
+          const n = new Notification(title, {
+            body: body,
+            tag: isCall ? 'ibi-call' : 'ibi-msg',
+            renotify: true,
+            icon: './icon-192.png',
+            badge: './icon-192.png',
+            requireInteraction: isCall,
+            silent: false
+          });
+          n.onclick = () => { try { window.focus(); } catch(_) {} n.close(); };
+        } catch (_) {}
+      });
+      // Sound + vibrate (best-effort; may be limited when backgrounded)
+      notifBeep(sawCall ? 3 : 1);
+      try { navigator.vibrate && navigator.vibrate(sawCall ? [300, 150, 300, 150, 300] : [200, 100, 200]); } catch (_) {}
+    }
+
+    // Menu toggle + permission flow
+    function updateNotifMenuLabel() {
+      const el = $('notifBtnLabel');
+      if (!el) return;
+      if (!notifSupported()) { el.textContent = 'Notifications unavailable'; return; }
+      if (notifPermission() === 'denied') { el.textContent = 'Notifications blocked'; return; }
+      el.textContent = (notifPrefOn() && notifPermission() === 'granted') ? 'Notifications: On' : 'Notifications: Off';
+    }
+    async function enableNotifications() {
+      if (!notifSupported()) { showToast('This browser does not support notifications.', 'error', 4000); return false; }
+      try { _audioCtx = _audioCtx || new (window.AudioContext || window.webkitAudioContext)(); if (_audioCtx.state === 'suspended') _audioCtx.resume(); } catch (_) {}
+      let perm = notifPermission();
+      if (perm === 'default') {
+        try { perm = await Notification.requestPermission(); } catch (_) { perm = notifPermission(); }
+      }
+      if (perm === 'denied') {
+        showToast('Notifications are blocked. Enable them in your browser/site settings.', 'error', 5000);
+        try { localStorage.setItem(NOTIF_PREF_KEY, 'off'); } catch(_) {}
+        updateNotifMenuLabel();
+        return false;
+      }
+      try { localStorage.setItem(NOTIF_PREF_KEY, 'on'); } catch(_) {}
+      updateNotifMenuLabel();
+      showToast('Notifications on 🔔', 'success', 2000);
+      notifBeep(1);
+      return true;
+    }
+    function toggleNotifications() {
+      if (notifPrefOn() && notifPermission() === 'granted') {
+        try { localStorage.setItem(NOTIF_PREF_KEY, 'off'); } catch(_) {}
+        updateNotifMenuLabel();
+        showToast('Notifications off', 'info', 1800);
+      } else {
+        enableNotifications();
+      }
+    }
+
+    // One-time prompt to enable notifications (reuses the install-banner UI)
+    function notifPromptDismissed() { try { return localStorage.getItem(NOTIF_PROMPT_KEY) === '1'; } catch(_) { return false; } }
+    function hideNotifPrompt(remember) {
+      const b = $('notifBanner'); if (b) b.style.display = 'none';
+      if (remember) { try { localStorage.setItem(NOTIF_PROMPT_KEY, '1'); } catch(_) {} }
+    }
+    function maybeShowNotifPrompt() {
+      const b = $('notifBanner'); if (!b) return;
+      if (!notifSupported()) return;
+      if (notifPermission() !== 'default') return;  // already granted or blocked
+      if (!notifPrefOn()) return;                    // user turned it off
+      if (notifPromptDismissed()) return;            // already dismissed
+      if (!identity) return;                         // wait until past onboarding
+      const ib = $('installBanner');
+      if (ib && ib.style.display !== 'none') return; // don't stack with install banner
+      b.style.display = 'flex';
+    }
+    const _notifEnableBtn = $('notifEnableBtn');
+    if (_notifEnableBtn) _notifEnableBtn.addEventListener('click', async () => {
+      const ok = await enableNotifications();
+      hideNotifPrompt(ok); // enabled → stop showing; blocked/declined → stop nagging too
+    });
+    const _notifPromptDismiss = $('notifPromptDismiss');
+    if (_notifPromptDismiss) _notifPromptDismiss.addEventListener('click', () => hideNotifPrompt(true));
+
+    // Reflect saved state in the menu label on startup
+    updateNotifMenuLabel();
 
     const STARRED_KEY = 'ibi-msgr-starred-v1';
     let starredIds = (function() {
@@ -6166,11 +6326,12 @@
     }
 
     function mergeIncoming(messages) {
-      if (!messages || !messages.length) return { added: 0, deleted: 0 };
+      if (!messages || !messages.length) return { added: 0, deleted: 0, newIncoming: [] };
       const existingIds = new Set(history.map(m => m.messageId));
       let added = 0;
       let deleted = 0;
       let latestTs = lastSeenTimestamp;
+      const newIncoming = [];
       messages.forEach(srv => {
         if (!srv.messageId) return;
         // Track the event timestamp — deletion events use deletedAt, normal events use timestamp
@@ -6239,13 +6400,17 @@
             status: 'sent'
           });
           added++;
+          // Notifiable if it's from someone else
+          if (identity && srv.senderId !== identity.senderId) {
+            newIncoming.push(history[history.length - 1]);
+          }
         }
         updateDirectoryFromMessage(srv);
         if (eventTs > latestTs) latestTs = eventTs;
       });
       saveLastSeen(latestTs);
       saveHistory();
-      return { added: added, deleted: deleted };
+      return { added: added, deleted: deleted, newIncoming: newIncoming };
     }
 
     async function initialFetch() {
@@ -6298,7 +6463,8 @@
     function startPolling() {
       stopPolling();
       pollTimer = setInterval(async () => {
-        if (document.visibilityState === 'hidden') return;
+        // Keep polling even when hidden (browser throttles to ~1/min) so that
+        // notifications can fire while the app is backgrounded.
         const data = await fetchSince(lastSeenTimestamp);
         if (!data || !data.messages || !data.messages.length) {
           if (data && data.now) saveLastSeen(data.now);
@@ -6308,6 +6474,7 @@
         if (r.added > 0 || r.deleted > 0) {
           if (searchActive && searchTerm) performSearch(); else renderChat();
         }
+        maybeNotify(r.newIncoming);            // ← Tier-1 notifications
         markMessagesAsSeen(data.messages); // fire-and-forget read receipts
       }, POLL_INTERVAL_MS);
     }
@@ -6337,6 +6504,7 @@
       e.stopPropagation();
       const open = menu.classList.toggle('menu--open');
       menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (open) updateNotifMenuLabel();
     });
     document.addEventListener('click', (e) => {
       if (!menu.contains(e.target) && e.target !== menuBtn && !menuBtn.contains(e.target)) {
@@ -6405,6 +6573,7 @@
     } else {
       initialFetch().then(startPolling);
       setTimeout(() => messageInput.focus(), 200);
+      setTimeout(maybeShowNotifPrompt, 3500);
     }
   </script>
 </body>
