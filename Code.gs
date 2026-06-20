@@ -94,6 +94,7 @@ function doPost(e) {
     if (action === 'markseen')  return _handleMarkSeen(payload);
     if (action === 'react')     return _handleReact(payload);
     if (action === 'pin')       return _handlePin(payload);
+    if (action === 'updatelocation') return _handleUpdateLocation(payload);
     return _handleSend(payload);
   } catch (err) {
     return _json({ ok: false, error: (err && err.message) ? err.message : String(err) });
@@ -148,9 +149,21 @@ function _handleSend(payload) {
     }
   }
 
-  // --- Upload generic file (document / audio / video) if present ---
+  // --- Generic attachment: location (no upload) or file (Drive upload) ---
   let attachmentJson = '';
-  if (fileAttach && fileAttach.base64) {
+  if (fileAttach && fileAttach.kind === 'location') {
+    // Location pin — just coordinates, no Drive upload
+    attachmentJson = JSON.stringify({
+      kind: 'location',
+      lat: Number(fileAttach.lat) || 0,
+      lng: Number(fileAttach.lng) || 0,
+      accuracy: Number(fileAttach.accuracy) || 0,
+      live: !!fileAttach.live,
+      liveUntil: _str(fileAttach.liveUntil, 40),
+      updatedAt: new Date().toISOString(),
+      label: _str(fileAttach.label, 120)
+    });
+  } else if (fileAttach && fileAttach.base64) {
     try {
       const up = _uploadFileToDrive(fileAttach, sender);
       attachmentJson = JSON.stringify({
@@ -438,6 +451,46 @@ function _handlePin(payload) {
   sheet.getRange(rowIdx, colEditedAt).setValue(pinnedAtDate); // bump so others refresh
   SpreadsheetApp.flush();
   return _json({ ok: true, messageId: messageId, pinnedAt: doPin ? pinnedAtDate.toISOString() : '', editedAt: pinnedAtDate.toISOString() });
+}
+
+/* =====================================================================
+   UPDATE LOCATION  —  updates an existing live-location message's
+   coordinates (and live/stop state). Bumps editedAt so other devices
+   refresh the pin on their next poll.
+   ===================================================================== */
+function _handleUpdateLocation(payload) {
+  if (!CONFIG.SHEET_ID || CONFIG.SHEET_ID.indexOf('PASTE') !== -1) {
+    return _json({ ok: false, error: 'Server not configured.' });
+  }
+  const messageId = _str(payload.messageId, 100);
+  if (!messageId) return _json({ ok: false, error: 'Missing messageId.' });
+
+  const sheet = _getSheet();
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return _json({ ok: false, error: 'Message not found.' });
+  const ids = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+  let rowIdx = -1;
+  for (let i = 0; i < ids.length; i++) { if (String(ids[i][0]) === messageId) { rowIdx = i + 2; break; } }
+  if (rowIdx === -1) return _json({ ok: false, error: 'Message not found.' });
+
+  const colAttach  = SHEET_HEADERS.indexOf('attachment') + 1;
+  const colEditedAt = SHEET_HEADERS.indexOf('editedAt') + 1;
+  const raw = String(sheet.getRange(rowIdx, colAttach).getValue() || '');
+  let att = {};
+  if (raw) { try { att = JSON.parse(raw); } catch (_) { att = {}; } }
+  if (att.kind !== 'location') return _json({ ok: false, error: 'Not a location message.' });
+
+  if (payload.lat !== undefined) att.lat = Number(payload.lat) || att.lat;
+  if (payload.lng !== undefined) att.lng = Number(payload.lng) || att.lng;
+  if (payload.accuracy !== undefined) att.accuracy = Number(payload.accuracy) || 0;
+  if (payload.stop === true || payload.stop === 'true') { att.live = false; att.liveUntil = new Date().toISOString(); }
+  att.updatedAt = new Date().toISOString();
+
+  const editedAtDate = new Date();
+  sheet.getRange(rowIdx, colAttach).setValue(JSON.stringify(att));
+  sheet.getRange(rowIdx, colEditedAt).setValue(editedAtDate);
+  SpreadsheetApp.flush();
+  return _json({ ok: true, messageId: messageId, attachment: JSON.stringify(att), editedAt: editedAtDate.toISOString() });
 }
 
 /* =====================================================================

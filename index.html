@@ -766,6 +766,103 @@
     }
     .msginfo__close button:hover { background: var(--border); }
 
+    /* ============ Attach popup menu (+ button) ============ */
+    .attach-menu-host { position: relative; display: flex; }
+    .attach-menu {
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 10px 36px rgba(0,0,0,0.22);
+      padding: 6px;
+      display: none;
+      flex-direction: column;
+      min-width: 196px;
+      z-index: 120;
+    }
+    .attach-menu--open { display: flex; }
+    .attach-menu__item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 12px;
+      background: transparent; border: 0;
+      font-family: 'Roboto', sans-serif; font-size: 14.5px;
+      color: var(--text); text-align: left; cursor: pointer;
+      border-radius: 9px; transition: background 0.15s;
+    }
+    .attach-menu__item:hover { background: var(--surface-2); }
+    .attach-menu__ic {
+      flex-shrink: 0; width: 34px; height: 34px; border-radius: 9px;
+      display: grid; place-items: center; color: #fff;
+    }
+    .attach-menu__ic svg { width: 18px; height: 18px; }
+
+    /* ============ Location bubble ============ */
+    .msg__location {
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 4px;
+      cursor: pointer;
+      min-width: 200px; max-width: 280px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+    }
+    .msg__location-map {
+      width: 100%;
+      height: 130px;
+      object-fit: cover;
+      display: block;
+      background:
+        repeating-linear-gradient(0deg, rgba(0,197,255,0.05) 0 14px, transparent 14px 28px),
+        repeating-linear-gradient(90deg, rgba(0,197,255,0.05) 0 14px, transparent 14px 28px),
+        var(--surface);
+    }
+    .msg__location-fallback {
+      width: 100%; height: 130px;
+      display: grid; place-items: center;
+      color: var(--ibi-cyan);
+      background:
+        repeating-linear-gradient(0deg, rgba(0,197,255,0.06) 0 16px, transparent 16px 32px),
+        repeating-linear-gradient(90deg, rgba(0,197,255,0.06) 0 16px, transparent 16px 32px),
+        var(--surface);
+    }
+    .msg__location-fallback svg { width: 40px; height: 40px; }
+    .msg__location-bar {
+      display: flex; align-items: center; gap: 9px;
+      padding: 8px 10px;
+    }
+    .msg__location-pin {
+      flex-shrink: 0; color: var(--ibi-cyan);
+      display: grid; place-items: center;
+    }
+    .msg__location-pin svg { width: 18px; height: 18px; }
+    .msg__location-info { flex: 1; min-width: 0; }
+    .msg__location-title {
+      display: block; font-size: 13.5px; font-weight: 500; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .msg__location-sub { display: block; font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+    .msg__location-live {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 10px; font-weight: 700; color: #fff;
+      background: #2ea043; padding: 1px 6px; border-radius: 8px;
+      text-transform: uppercase; letter-spacing: 0.3px;
+    }
+    .msg__location-live::before {
+      content: ''; width: 6px; height: 6px; border-radius: 50%;
+      background: #fff; animation: recPulse 1.2s ease-in-out infinite;
+    }
+    .msg__location-live--ended { background: var(--text-muted); }
+    .msg__location-live--ended::before { animation: none; }
+    .msg__location-stop {
+      margin-top: 4px;
+      display: inline-block;
+      font-size: 12px; font-weight: 600;
+      color: #e23b3b; cursor: pointer;
+      background: transparent; border: 0; padding: 2px 0;
+    }
+
     /* ============ Voice message player ============ */
     .msg__voice {
       display: flex;
@@ -1748,7 +1845,7 @@
       </div>
 
       <div class="hdr__title-block" id="hdrTitleBlock">
-        <span class="hdr__name">IBI Messenger <span class="hdr__version" id="appVersion">v4.2</span></span>
+        <span class="hdr__name">IBI Messenger <span class="hdr__version" id="appVersion">v4.3</span></span>
         <span class="hdr__sub">
           <span class="hdr__dot" id="hdrDot"></span>
           <span id="hdrStatus">You: <strong id="hdrSenderName">—</strong></span>
@@ -1891,24 +1988,31 @@
     </div>
 
     <div class="input-bar">
-      <button type="button" class="input-bar__attach" id="attachBtn" aria-label="Attach image from gallery" title="Gallery">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="3" width="18" height="18" rx="3"/>
-          <circle cx="8.5" cy="8.5" r="1.5"/>
-          <path d="m21 15-5-5L5 21"/>
-        </svg>
-      </button>
-      <button type="button" class="input-bar__attach" id="cameraBtn" aria-label="Take a photo" title="Camera">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-          <circle cx="12" cy="13" r="4"/>
-        </svg>
-      </button>
-      <button type="button" class="input-bar__attach" id="docBtn" aria-label="Attach a document" title="Attach file">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
-        </svg>
-      </button>
+      <div class="attach-menu-host">
+        <button type="button" class="input-bar__attach" id="attachMenuBtn" aria-label="Attach" title="Attach" aria-haspopup="true" aria-expanded="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+        </button>
+        <div class="attach-menu" id="attachMenu" role="menu">
+          <button type="button" class="attach-menu__item" id="amPhoto" role="menuitem">
+            <span class="attach-menu__ic" style="background:#7b5ea7;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></span>
+            Photo
+          </button>
+          <button type="button" class="attach-menu__item" id="amCamera" role="menuitem">
+            <span class="attach-menu__ic" style="background:#e23b8a;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span>
+            Camera
+          </button>
+          <button type="button" class="attach-menu__item" id="amDoc" role="menuitem">
+            <span class="attach-menu__ic" style="background:#2b6fd6;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
+            Document / Video
+          </button>
+          <button type="button" class="attach-menu__item" id="amLocation" role="menuitem">
+            <span class="attach-menu__ic" style="background:#1d8a4c;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
+            Location
+          </button>
+        </div>
+      </div>
       <div class="input-bar__textwrap">
         <textarea id="messageInput" class="input-bar__textarea" placeholder="Type a message…" rows="1" aria-label="Message" spellcheck="true"></textarea>
       </div>
@@ -2102,6 +2206,29 @@
     <button type="button" class="action-sheet__item action-sheet__item--cancel" id="actionCancel" role="menuitem">Cancel</button>
   </div>
 
+  <!-- Location chooser sheet -->
+  <div class="action-sheet-backdrop" id="locBackdrop"></div>
+  <div class="action-sheet" id="locSheet" role="menu" aria-label="Share location">
+    <div class="action-sheet__handle" aria-hidden="true"></div>
+    <div class="action-sheet__preview" style="display:block;">
+      <strong>Share location</strong>
+      <span>Send your current spot, or share live for a while.</span>
+    </div>
+    <button type="button" class="action-sheet__item" id="locStatic" role="menuitem">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      <span>Send current location</span>
+    </button>
+    <button type="button" class="action-sheet__item" id="locLive15" role="menuitem">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      <span>Share live · 15 minutes</span>
+    </button>
+    <button type="button" class="action-sheet__item" id="locLive60" role="menuitem">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      <span>Share live · 1 hour</span>
+    </button>
+    <button type="button" class="action-sheet__item action-sheet__item--cancel" id="locCancel" role="menuitem">Cancel</button>
+  </div>
+
   <!-- Starred messages view -->
   <div class="action-sheet-backdrop" id="starredBackdrop"></div>
   <div class="msginfo" id="starredPanel" role="dialog" aria-label="Starred messages" aria-modal="true">
@@ -2229,12 +2356,21 @@
     const videoModal = $('videoModal');
     const videoModalBody = $('videoModalBody');
     const videoModalClose = $('videoModalClose');
-    const attachBtn  = $('attachBtn');
+    const attachMenuBtn = $('attachMenuBtn');
+    const attachMenu = $('attachMenu');
     const fileInput  = $('fileInput');
-    const cameraBtn  = $('cameraBtn');
     const cameraInput = $('cameraInput');
-    const docBtn      = $('docBtn');
     const docInput    = $('docInput');
+    const amPhoto = $('amPhoto');
+    const amCamera = $('amCamera');
+    const amDoc = $('amDoc');
+    const amLocation = $('amLocation');
+    const locSheet = $('locSheet');
+    const locBackdrop = $('locBackdrop');
+    const locStatic = $('locStatic');
+    const locLive15 = $('locLive15');
+    const locLive60 = $('locLive60');
+    const locCancel = $('locCancel');
     const attachFilePreview = $('attachFilePreview');
     const attachFileIcon = $('attachFileIcon');
     const attachFileName = $('attachFileName');
@@ -2831,12 +2967,40 @@
         html += '<div style="opacity:.7;font-size:13px;font-style:italic;padding:6px 0;">[Image — dropped from local cache]</div>';
       }
 
-      // File / document / video / audio attachment
-      if (msg.attachment && (msg.attachment.fileId || msg.attachment._local)) {
+      // File / document / video / audio / location attachment
+      if (msg.attachment && (msg.attachment.fileId || msg.attachment._local || msg.attachment.kind === 'location')) {
         const att = msg.attachment;
-        const pending = att._local && !att.fileId && !att._localUrl;
+        const pending = att.kind !== 'location' && att._local && !att.fileId && !att._localUrl;
 
-        if (att.kind === 'audio') {
+        if (att.kind === 'location') {
+          const lat = att.lat, lng = att.lng;
+          const isLive = !!att.live;
+          const ended = isLive && att.liveUntil && (new Date(att.liveUntil).getTime() < Date.now());
+          const liveActive = isLive && !ended;
+          const mapUrl = 'https://staticmap.openstreetmap.de/staticmap.php?center=' + lat + ',' + lng +
+                         '&zoom=15&size=300x130&markers=' + lat + ',' + lng + ',red-pushpin';
+          const accStr = att.accuracy ? ('±' + att.accuracy + ' m') : '';
+          const coordStr = (Number(lat)).toFixed(5) + ', ' + (Number(lng)).toFixed(5);
+          const pinSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>';
+          let liveBadge = '';
+          if (isLive) {
+            liveBadge = liveActive
+              ? '<span class="msg__location-live">Live</span>'
+              : '<span class="msg__location-live msg__location-live--ended">Live ended</span>';
+          }
+          const stopBtn = (liveActive && isMine(msg))
+            ? '<button type="button" class="msg__location-stop" data-stop-live="' + escapeHtml(msg.messageId) + '">Stop sharing</button>' : '';
+          // Map image with a pre-rendered fallback pin card (onerror just swaps visibility)
+          html += '<div class="msg__location" data-lat="' + lat + '" data-lng="' + lng + '">'
+                + '<img class="msg__location-map" src="' + mapUrl + '" alt="Map location" referrerpolicy="no-referrer" '
+                + 'onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'grid\';" />'
+                + '<div class="msg__location-fallback" style="display:none;">' + pinSvg + '</div>'
+                + '<div class="msg__location-bar">'
+                + '<span class="msg__location-pin">' + pinSvg + '</span>'
+                + '<div class="msg__location-info"><span class="msg__location-title">' + (isLive ? 'Live location ' : 'Location ') + liveBadge + '</span>'
+                + '<span class="msg__location-sub">' + escapeHtml([coordStr, accStr].filter(Boolean).join(' · ')) + '</span>'
+                + stopBtn + '</div></div></div>';
+        } else if (att.kind === 'audio') {
           // Voice message player
           const dur = att.duration || 0;
           const durStr = Math.floor(dur / 60) + ':' + String(dur % 60).padStart(2, '0');
@@ -2958,6 +3122,22 @@
       const videoEl = el.querySelector('.msg__video');
       if (videoEl && msg.attachment) {
         videoEl.addEventListener('click', () => openVideoModal(msg.attachment));
+      }
+      // Location: tap to open in Google Maps; Stop button ends live sharing
+      const locEl = el.querySelector('.msg__location');
+      if (locEl) {
+        locEl.addEventListener('click', (e) => {
+          if (e.target.closest('[data-stop-live]')) return; // let stop button handle itself
+          const lat = locEl.dataset.lat, lng = locEl.dataset.lng;
+          window.open('https://www.google.com/maps?q=' + encodeURIComponent(lat + ',' + lng), '_blank', 'noopener');
+        });
+        const stopEl = locEl.querySelector('[data-stop-live]');
+        if (stopEl) {
+          stopEl.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (window._ibiStopLive) window._ibiStopLive(stopEl.dataset.stopLive);
+          });
+        }
       }
       // Quote block: tap → scroll to the original replied-to message
       const quoteEl = el.querySelector('.msg__quote');
@@ -3093,6 +3273,10 @@
       }
       if (starredPanel.classList.contains('msginfo--open')) {
         closeStarredPanel(true);
+        return;
+      }
+      if (locSheet.classList.contains('action-sheet--open')) {
+        closeLocationSheet(true);
         return;
       }
       if (lightbox.classList.contains('lightbox--open')) {
@@ -3945,11 +4129,22 @@
     // Image attach + compress
     // =========================================================
     // =========================================================
-    // Image attachment — multi-select from gallery, single from camera
+    // Attach popup menu (+ button) — Photo, Camera, Document, Location
     // =========================================================
-    attachBtn.addEventListener('click', () => fileInput.click());
-    cameraBtn.addEventListener('click', () => cameraInput.click());
-    docBtn.addEventListener('click', () => docInput.click());
+    function openAttachMenu() { attachMenu.classList.add('attach-menu--open'); attachMenuBtn.setAttribute('aria-expanded', 'true'); }
+    function closeAttachMenu() { attachMenu.classList.remove('attach-menu--open'); attachMenuBtn.setAttribute('aria-expanded', 'false'); }
+    attachMenuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (attachMenu.classList.contains('attach-menu--open')) closeAttachMenu(); else openAttachMenu();
+    });
+    document.addEventListener('click', (e) => {
+      if (attachMenu.classList.contains('attach-menu--open') &&
+          !attachMenu.contains(e.target) && e.target !== attachMenuBtn) closeAttachMenu();
+    });
+    amPhoto.addEventListener('click', () => { closeAttachMenu(); fileInput.click(); });
+    amCamera.addEventListener('click', () => { closeAttachMenu(); cameraInput.click(); });
+    amDoc.addEventListener('click', () => { closeAttachMenu(); docInput.click(); });
+    amLocation.addEventListener('click', () => { closeAttachMenu(); openLocationSheet(); });
 
     // =========================================================
     // Document / file attachment (PDF, Excel, Word, video, audio, etc.)
@@ -4041,6 +4236,168 @@
     attachFileCancel.addEventListener('click', clearFileAttachment);
 
     // =========================================================
+    // Location sharing — static pin or live location
+    // =========================================================
+    function openLocationSheet() {
+      if (!navigator.geolocation) { showToast('Location is not supported on this device.', 'error', 4000); return; }
+      locBackdrop.classList.add('action-sheet-backdrop--open');
+      locSheet.classList.add('action-sheet--open');
+      pushOverlayState('loc');
+    }
+    function closeLocationSheet(fromBack) {
+      if (!locSheet.classList.contains('action-sheet--open')) return;
+      locSheet.classList.remove('action-sheet--open');
+      locBackdrop.classList.remove('action-sheet-backdrop--open');
+      if (!fromBack && history.state && history.state.ibiOverlay === 'loc') window.history.back();
+    }
+    locBackdrop.addEventListener('click', () => closeLocationSheet(false));
+    locCancel.addEventListener('click', () => closeLocationSheet(false));
+
+    locStatic.addEventListener('click', () => { closeLocationSheet(false); shareCurrentLocation(); });
+    locLive15.addEventListener('click', () => { closeLocationSheet(false); shareLiveLocation(15); });
+    locLive60.addEventListener('click', () => { closeLocationSheet(false); shareLiveLocation(60); });
+
+    function getPosition(opts) {
+      return new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, opts || { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+      });
+    }
+
+    async function shareCurrentLocation() {
+      showToast('Getting your location…', 'info', 1500);
+      let pos;
+      try { pos = await getPosition(); }
+      catch (err) {
+        showToast(err.code === 1 ? 'Location permission denied.' : 'Could not get your location.', 'error', 4000);
+        return;
+      }
+      const loc = {
+        kind: 'location',
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude,
+        accuracy: Math.round(pos.coords.accuracy || 0),
+        live: false
+      };
+      await _sendLocationMessage(loc, null);
+    }
+
+    // Live location: send initial pin, then keep updating until the timer ends or stopped
+    let liveWatchId = null;
+    let liveMsgId = null;
+    let liveEndTimer = null;
+    let lastLiveSendTs = 0;
+
+    async function shareLiveLocation(minutes) {
+      showToast('Starting live location…', 'info', 1500);
+      let pos;
+      try { pos = await getPosition(); }
+      catch (err) {
+        showToast(err.code === 1 ? 'Location permission denied.' : 'Could not get your location.', 'error', 4000);
+        return;
+      }
+      // Only one live session at a time
+      if (liveWatchId !== null) stopLiveLocation(true);
+
+      const liveUntil = new Date(Date.now() + minutes * 60000).toISOString();
+      const loc = {
+        kind: 'location',
+        lat: pos.coords.latitude, lng: pos.coords.longitude,
+        accuracy: Math.round(pos.coords.accuracy || 0),
+        live: true, liveUntil: liveUntil
+      };
+      const mid = await _sendLocationMessage(loc, null);
+      liveMsgId = mid;
+      lastLiveSendTs = Date.now();
+
+      // Watch position and push updates (throttled to ~every 20s)
+      liveWatchId = navigator.geolocation.watchPosition((p) => {
+        const now = Date.now();
+        if (now - lastLiveSendTs < 20000) {
+          // Still update local pin smoothly without hitting the server every tick
+          const m = history.find(x => x.messageId === liveMsgId);
+          if (m && m.attachment) { m.attachment.lat = p.coords.latitude; m.attachment.lng = p.coords.longitude; rerenderMessage(liveMsgId); }
+          return;
+        }
+        lastLiveSendTs = now;
+        pushLiveUpdate(p.coords.latitude, p.coords.longitude, Math.round(p.coords.accuracy || 0), false);
+      }, (err) => {
+        console.warn('watchPosition error:', err);
+      }, { enableHighAccuracy: true, timeout: 20000, maximumAge: 5000 });
+
+      liveEndTimer = setTimeout(() => stopLiveLocation(false), minutes * 60000);
+      showToast('Live location started for ' + minutes + ' min', 'success', 2500);
+    }
+
+    function pushLiveUpdate(lat, lng, accuracy, stop) {
+      if (!liveMsgId) return;
+      const m = history.find(x => x.messageId === liveMsgId);
+      if (m && m.attachment) {
+        m.attachment.lat = lat; m.attachment.lng = lng; m.attachment.accuracy = accuracy;
+        if (stop) m.attachment.live = false;
+        m.attachment.updatedAt = new Date().toISOString();
+        saveHistory(); rerenderMessage(liveMsgId);
+      }
+      const body = JSON.stringify({ action: 'updatelocation', messageId: liveMsgId, lat: lat, lng: lng, accuracy: accuracy, stop: !!stop });
+      _fireAndForget(body);
+    }
+
+    function stopLiveLocation(silent) {
+      if (liveWatchId !== null) { try { navigator.geolocation.clearWatch(liveWatchId); } catch(_) {} liveWatchId = null; }
+      if (liveEndTimer) { clearTimeout(liveEndTimer); liveEndTimer = null; }
+      const stoppedId = liveMsgId;
+      if (stoppedId) {
+        const m = history.find(x => x.messageId === stoppedId);
+        const lat = m && m.attachment ? m.attachment.lat : 0;
+        const lng = m && m.attachment ? m.attachment.lng : 0;
+        pushLiveUpdate(lat, lng, m && m.attachment ? m.attachment.accuracy : 0, true);
+      }
+      liveMsgId = null;
+      if (!silent) showToast('Live location stopped', 'info', 2000);
+    }
+    // Expose for the in-bubble Stop button
+    window._ibiStopLive = function(msgId) {
+      if (msgId === liveMsgId) stopLiveLocation(false);
+    };
+    // If the app closes mid-share, flag the live session as ended
+    window.addEventListener('beforeunload', () => {
+      if (liveWatchId !== null && liveMsgId) {
+        const m = history.find(x => x.messageId === liveMsgId);
+        if (m && m.attachment) {
+          const body = JSON.stringify({ action: 'updatelocation', messageId: liveMsgId, lat: m.attachment.lat, lng: m.attachment.lng, accuracy: m.attachment.accuracy || 0, stop: true });
+          // Best-effort beacon so it lands even as the page unloads
+          try { navigator.sendBeacon(GAS_WEB_APP_URL, body); } catch(_) {}
+        }
+      }
+    });
+
+    async function _sendLocationMessage(loc, replyTo) {
+      const messageId = 'msg_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10);
+      const ts = new Date().toISOString();
+      const localMsg = {
+        messageId, timestamp: ts,
+        sender: identity.sender, senderId: identity.senderId,
+        phone: identity.phone || '',
+        type: 'file', text: '',
+        imageId: '', imageW: '', imageH: '',
+        attachment: Object.assign({ updatedAt: ts }, loc),
+        replyTo: replyTo || null, status: 'sending'
+      };
+      history.push(localMsg); saveHistory(); renderChat(true);
+      setSending(true);
+      const payload = {
+        messageId,
+        sender: identity.sender, senderId: identity.senderId,
+        phone: identity.phone || '', text: '',
+        clientTimestamp: ts,
+        userAgent: navigator.userAgent.substring(0, 200),
+        attachment: loc
+      };
+      await _postToGAS(messageId, JSON.stringify(payload));
+      setSending(false);
+      return messageId;
+    }
+
+    // =========================================================
     // Voice messages — record via MediaRecorder, send as audio attachment
     // =========================================================
     let recording = false;
@@ -4086,7 +4443,7 @@
       recStartTs = Date.now();
 
       // Show recording bar, hide input controls
-      attachBtn.style.display = 'none'; cameraBtn.style.display = 'none'; docBtn.style.display = 'none';
+      attachMenuBtn.style.display = 'none';
       micBtn.style.display = 'none'; sendBtn.style.display = 'none';
       messageInput.parentElement.style.display = 'none';
       recordingBar.style.display = 'flex';
@@ -4102,7 +4459,7 @@
     function teardownRecordingUI() {
       clearInterval(recTimer); recTimer = null;
       recordingBar.style.display = 'none';
-      attachBtn.style.display = ''; cameraBtn.style.display = ''; docBtn.style.display = '';
+      attachMenuBtn.style.display = '';
       messageInput.parentElement.style.display = '';
       recording = false;
       if (mediaStream) { mediaStream.getTracks().forEach(t => t.stop()); mediaStream = null; }
@@ -5080,10 +5437,17 @@
               local.text = srv.text;
               local.editedAt = srv.editedAt;
             }
-            // Sync reactions + pin (these also bump editedAt on the server)
+            // Sync reactions + pin + attachment (these bump editedAt on the server)
             if (srv.editedAt && srv.editedAt !== local._reactSync) {
               try { local.reactions = srv.reactions ? JSON.parse(srv.reactions) : {}; } catch(_) {}
               local.pinnedAt = srv.pinnedAt || '';
+              // Refresh live-location coordinates (don't clobber a local _localUrl etc.)
+              if (srv.attachment) {
+                try {
+                  const a = JSON.parse(srv.attachment);
+                  if (a && a.kind === 'location') local.attachment = a;
+                } catch(_) {}
+              }
               local._reactSync = srv.editedAt;
             }
             if (local.status !== 'failed') local.status = 'sent';
