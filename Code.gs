@@ -172,6 +172,16 @@ function _handleSend(payload) {
       by: _str(fileAttach.by, 120),
       startedAt: new Date().toISOString()
     });
+  } else if (fileAttach && fileAttach.kind === 'product') {
+    // Product card — catalog item shared into the chat, no Drive upload
+    attachmentJson = JSON.stringify({
+      kind: 'product',
+      name: _str(fileAttach.name, 160),
+      price: _str(fileAttach.price, 40),
+      category: _str(fileAttach.category, 60),
+      desc: _str(fileAttach.desc, 400),
+      by: _str(fileAttach.by, 120)
+    });
   } else if (fileAttach && fileAttach.base64) {
     try {
       const up = _uploadFileToDrive(fileAttach, sender);

@@ -909,6 +909,113 @@
       color: #cdd5df; font-size: 14px; text-align: center; padding: 20px;
     }
 
+    /* ============ Business features: profile, catalog, quick replies ============ */
+    .sheet-scroll { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 4px 16px 6px; }
+    .sheet-form { display: flex; flex-direction: column; gap: 10px; padding: 6px 16px 6px; }
+    .sheet-field { display: flex; flex-direction: column; gap: 4px; }
+    .sheet-field > label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+    .sheet-input, .sheet-textarea {
+      width: 100%; box-sizing: border-box;
+      background: var(--surface-2); color: var(--text);
+      border: 1px solid var(--border); border-radius: 9px;
+      padding: 9px 11px; font-family: 'Roboto', sans-serif; font-size: 14px;
+    }
+    .sheet-textarea { resize: vertical; min-height: 60px; }
+    .sheet-input:focus, .sheet-textarea:focus { outline: none; border-color: var(--ibi-cyan); }
+    .sheet-actions { display: flex; gap: 8px; padding: 4px 16px 12px; }
+    .sheet-btn {
+      flex: 1; border: 0; border-radius: 9px; padding: 11px;
+      font-family: 'Roboto', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer;
+    }
+    .sheet-btn--primary { background: var(--ibi-cyan); color: #fff; }
+    .sheet-btn--ghost { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+    .sheet-btn:active { transform: scale(0.98); }
+    .sheet-add {
+      display: flex; align-items: center; justify-content: center; gap: 7px;
+      width: calc(100% - 32px); margin: 4px 16px 12px; padding: 10px;
+      background: transparent; color: var(--ibi-cyan);
+      border: 1.5px dashed var(--ibi-cyan); border-radius: 10px;
+      font-family: 'Roboto', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer;
+    }
+    .sheet-add svg { width: 18px; height: 18px; }
+    .sheet-empty { text-align: center; color: var(--text-muted); font-size: 13px; padding: 16px; }
+
+    /* Quick replies list */
+    .qr-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: 10px; background: var(--surface-2);
+      border: 1px solid var(--border); margin-bottom: 8px; cursor: pointer;
+    }
+    .qr-item:active { background: var(--surface); }
+    .qr-item__body { flex: 1; min-width: 0; }
+    .qr-item__title { display: block; font-size: 13.5px; font-weight: 600; color: var(--text); }
+    .qr-item__text { display: block; font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+    .qr-item__act { flex-shrink: 0; background: transparent; border: 0; color: var(--text-muted); cursor: pointer; padding: 5px; border-radius: 7px; display: grid; place-items: center; }
+    .qr-item__act:hover { background: var(--surface); color: var(--ibi-cyan); }
+    .qr-item__act--del:hover { color: #e23b3b; }
+    .qr-item__act svg { width: 17px; height: 17px; }
+
+    /* Catalog list */
+    .cat-item {
+      display: flex; align-items: center; gap: 11px;
+      padding: 10px 12px; border-radius: 11px; background: var(--surface-2);
+      border: 1px solid var(--border); margin-bottom: 8px;
+    }
+    .cat-item__badge {
+      flex-shrink: 0; width: 42px; height: 42px; border-radius: 10px;
+      display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 16px;
+    }
+    .cat-item__body { flex: 1; min-width: 0; }
+    .cat-item__name { display: block; font-size: 14px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cat-item__meta { display: block; font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+    .cat-item__price { font-weight: 700; color: var(--ibi-cyan); }
+    .cat-item__acts { display: flex; gap: 0; flex-shrink: 0; }
+    .cat-item__act { background: transparent; border: 0; color: var(--text-muted); cursor: pointer; padding: 6px; border-radius: 7px; display: grid; place-items: center; }
+    .cat-item__act:hover { background: var(--surface); color: var(--ibi-cyan); }
+    .cat-item__act svg { width: 17px; height: 17px; }
+    .cat-item__act--share:hover { color: #2ea043; }
+    .cat-item__act--del:hover { color: #e23b3b; }
+
+    /* Product card in chat */
+    .msg__product {
+      border-radius: 12px; overflow: hidden; margin-bottom: 4px;
+      min-width: 210px; max-width: 280px;
+      border: 1px solid var(--border);
+    }
+    .msg--sent .msg__product { background: rgba(0,26,34,0.10); }
+    .msg--recv .msg__product { background: var(--surface-2); }
+    .msg__product-top { display: flex; align-items: center; gap: 10px; padding: 10px 11px 6px; }
+    .msg__product-badge { flex-shrink: 0; width: 44px; height: 44px; border-radius: 10px; display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 17px; }
+    .msg__product-head { flex: 1; min-width: 0; }
+    .msg__product-name { display: block; font-size: 14px; font-weight: 700; color: var(--text); line-height: 1.25; }
+    .msg__product-cat { display: inline-block; font-size: 10.5px; font-weight: 600; color: var(--text-muted); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.3px; }
+    .msg__product-price { display: block; padding: 0 11px 4px; font-size: 18px; font-weight: 800; color: var(--ibi-cyan); }
+    .msg__product-desc { display: block; padding: 0 11px 10px; font-size: 12.5px; color: var(--text-muted); line-height: 1.35; }
+
+    /* Business profile view */
+    .biz-view { padding: 6px 16px 8px; }
+    .biz-logo { width: 76px; height: 76px; border-radius: 18px; margin: 4px auto 10px; display: grid; place-items: center; background: var(--surface-2); border: 1px solid var(--border); overflow: hidden; color: var(--ibi-cyan); }
+    .biz-logo img { width: 100%; height: 100%; object-fit: cover; }
+    .biz-logo svg { width: 40px; height: 40px; }
+    .biz-name { text-align: center; font-size: 17px; font-weight: 700; color: var(--text); }
+    .biz-cat { text-align: center; font-size: 12.5px; color: var(--ibi-cyan); font-weight: 600; margin-top: 2px; margin-bottom: 10px; }
+    .biz-row { display: flex; align-items: flex-start; gap: 11px; padding: 9px 2px; border-top: 1px solid var(--border); }
+    .biz-row__ic { flex-shrink: 0; color: var(--ibi-cyan); margin-top: 1px; }
+    .biz-row__ic svg { width: 18px; height: 18px; }
+    .biz-row__c { min-width: 0; }
+    .biz-row__label { display: block; font-size: 11px; color: var(--text-muted); }
+    .biz-row__val { display: block; font-size: 14px; color: var(--text); word-break: break-word; }
+    .biz-row__val a { color: var(--ibi-cyan); text-decoration: none; }
+
+    /* Quick-reply composer button */
+    .input-bar__qr {
+      flex-shrink: 0; background: transparent; border: 0; color: var(--text-muted);
+      cursor: pointer; width: 38px; height: 38px; border-radius: 50%;
+      display: grid; place-items: center; align-self: flex-end;
+    }
+    .input-bar__qr:hover { color: var(--ibi-cyan); background: var(--surface-2); }
+    .input-bar__qr svg { width: 21px; height: 21px; }
+
     /* ============ Rich text formatting ============ */
     .msg__text strong { font-weight: 700; }
     .msg__text em { font-style: italic; }
@@ -2039,7 +2146,7 @@
       </div>
 
       <div class="hdr__title-block" id="hdrTitleBlock">
-        <span class="hdr__name">IBI Messenger <span class="hdr__version" id="appVersion">v5.1</span></span>
+        <span class="hdr__name">IBI Messenger <span class="hdr__version" id="appVersion">v5.2</span></span>
         <span class="hdr__sub">
           <span class="hdr__dot" id="hdrDot"></span>
           <span id="hdrStatus">You: <strong id="hdrSenderName">—</strong></span>
@@ -2082,6 +2189,18 @@
             <button type="button" class="menu__item" id="notifBtn" role="menuitem">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
               <span id="notifBtnLabel">Notifications: Off</span>
+            </button>
+            <button type="button" class="menu__item" id="bizProfileBtn" role="menuitem">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9h.01M9 12h.01M9 15h.01M9 18h.01"/></svg>
+              Business profile
+            </button>
+            <button type="button" class="menu__item" id="catalogBtn" role="menuitem">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+              Product catalog
+            </button>
+            <button type="button" class="menu__item" id="quickRepliesBtn" role="menuitem">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+              Quick replies
             </button>
             <button type="button" class="menu__item" id="wallpaperBtn" role="menuitem">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
@@ -2218,6 +2337,9 @@
     </div>
 
     <div class="input-bar">
+      <button type="button" class="input-bar__qr" id="quickReplyBtn" aria-label="Quick replies" title="Quick replies">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+      </button>
       <div class="attach-menu-host">
         <button type="button" class="input-bar__attach" id="attachMenuBtn" aria-label="Attach" title="Attach" aria-haspopup="true" aria-expanded="false">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -2240,6 +2362,10 @@
           <button type="button" class="attach-menu__item" id="amLocation" role="menuitem">
             <span class="attach-menu__ic" style="background:#1d8a4c;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
             Location
+          </button>
+          <button type="button" class="attach-menu__item" id="amProduct" role="menuitem">
+            <span class="attach-menu__ic" style="background:#00a3cc;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span>
+            Product
           </button>
         </div>
       </div>
@@ -2328,6 +2454,49 @@
     <div class="msginfo__close"><button type="button" id="wpClose">Close</button></div>
   </div>
   <input type="file" id="wpInput" accept="image/*" hidden />
+
+  <!-- Shared backdrop for business-feature panels -->
+  <div class="action-sheet-backdrop" id="bfBackdrop"></div>
+
+  <!-- Business profile panel -->
+  <div class="msginfo" id="bizPanel" role="dialog" aria-label="Business profile" aria-modal="true">
+    <div class="msginfo__handle" aria-hidden="true"></div>
+    <div class="msginfo__header">
+      <div class="msginfo__icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>
+      </div>
+      <h3 class="msginfo__title">Business Profile</h3>
+    </div>
+    <div id="bizBody"></div>
+    <input type="file" id="bizLogoInput" accept="image/*" hidden />
+    <div class="msginfo__close"><button type="button" id="bizClose">Close</button></div>
+  </div>
+
+  <!-- Product catalog panel -->
+  <div class="msginfo" id="catPanel" role="dialog" aria-label="Product catalog" aria-modal="true">
+    <div class="msginfo__handle" aria-hidden="true"></div>
+    <div class="msginfo__header">
+      <div class="msginfo__icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+      </div>
+      <h3 class="msginfo__title" id="catTitle">Product Catalog</h3>
+    </div>
+    <div id="catBody"></div>
+    <div class="msginfo__close"><button type="button" id="catClose">Close</button></div>
+  </div>
+
+  <!-- Quick replies panel -->
+  <div class="msginfo" id="qrPanel" role="dialog" aria-label="Quick replies" aria-modal="true">
+    <div class="msginfo__handle" aria-hidden="true"></div>
+    <div class="msginfo__header">
+      <div class="msginfo__icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+      </div>
+      <h3 class="msginfo__title" id="qrTitle">Quick Replies</h3>
+    </div>
+    <div id="qrBody"></div>
+    <div class="msginfo__close"><button type="button" id="qrClose">Close</button></div>
+  </div>
 
   <!-- Call modal (Jitsi embed) -->
   <div class="call-modal" id="callModal" role="dialog" aria-label="Call" aria-modal="true">
@@ -3278,12 +3447,23 @@
         html += '<div style="opacity:.7;font-size:13px;font-style:italic;padding:6px 0;">[Image — dropped from local cache]</div>';
       }
 
-      // File / document / video / audio / location / call attachment
-      if (msg.attachment && (msg.attachment.fileId || msg.attachment._local || msg.attachment.kind === 'location' || msg.attachment.kind === 'call')) {
+      // File / document / video / audio / location / call / product attachment
+      if (msg.attachment && (msg.attachment.fileId || msg.attachment._local || msg.attachment.kind === 'location' || msg.attachment.kind === 'call' || msg.attachment.kind === 'product')) {
         const att = msg.attachment;
-        const pending = att.kind !== 'location' && att.kind !== 'call' && att._local && !att.fileId && !att._localUrl;
+        const pending = att.kind !== 'location' && att.kind !== 'call' && att.kind !== 'product' && att._local && !att.fileId && !att._localUrl;
 
-        if (att.kind === 'call') {
+        if (att.kind === 'product') {
+          const pcol = catColor(att.category);
+          html += '<div class="msg__product">'
+                + '<div class="msg__product-top">'
+                +   '<span class="msg__product-badge" style="background:' + pcol + ';">' + escapeHtml(catInitial(att.name)) + '</span>'
+                +   '<span class="msg__product-head"><span class="msg__product-name">' + escapeHtml(att.name || 'Product') + '</span>'
+                +   (att.category ? '<span class="msg__product-cat">' + escapeHtml(att.category) + '</span>' : '') + '</span>'
+                + '</div>'
+                + (att.price ? '<span class="msg__product-price">' + escapeHtml(att.price) + '</span>' : '')
+                + (att.desc ? '<span class="msg__product-desc">' + escapeHtml(att.desc) + '</span>' : '')
+                + '</div>';
+        } else if (att.kind === 'call') {
           const isVideo = att.mode === 'video';
           const who = (att.by || msg.sender || 'Someone').split(',')[0].trim();
           const callIcon = isVideo
@@ -3618,6 +3798,18 @@
       }
       if (wpPanel.classList.contains('msginfo--open')) {
         closeWallpaperPanel(true);
+        return;
+      }
+      if (bizPanel.classList.contains('msginfo--open')) {
+        closeBizPanel(true);
+        return;
+      }
+      if (catPanel.classList.contains('msginfo--open')) {
+        closeCatPanel(true);
+        return;
+      }
+      if (qrPanel.classList.contains('msginfo--open')) {
+        closeQRPanel(true);
         return;
       }
       if (lightbox.classList.contains('lightbox--open')) {
@@ -4133,6 +4325,7 @@
     function notifPreview(msg) {
       const att = msg.attachment;
       if (att && att.kind === 'call') return (att.mode === 'video' ? '📹 Incoming video call' : '📞 Incoming voice call');
+      if (att && att.kind === 'product') return '🛍 ' + (att.name || 'Product');
       if (att && att.kind === 'location') return '📍 Location';
       if (att && att.kind === 'audio') return '🎤 Voice message';
       if (att && att.kind === 'video') return '📹 Video';
@@ -4434,6 +4627,367 @@
     }
     starredBackdrop.addEventListener('click', () => closeStarredPanel(false));
     starredClose.addEventListener('click', () => closeStarredPanel(false));
+
+    // =========================================================
+    // Business features: Profile · Product catalog · Quick replies
+    // Profile / catalog / quick-reply templates are per-device (localStorage).
+    // Sharing a product posts a product card to the shared channel.
+    // =========================================================
+    const bfBackdrop = $('bfBackdrop');
+    const bizPanel = $('bizPanel'), bizBody = $('bizBody'), bizClose = $('bizClose'), bizLogoInput = $('bizLogoInput'), bizProfileBtn = $('bizProfileBtn');
+    const catPanel = $('catPanel'), catBody = $('catBody'), catClose = $('catClose'), catTitle = $('catTitle'), catalogBtn = $('catalogBtn'), amProduct = $('amProduct');
+    const qrPanel = $('qrPanel'), qrBody = $('qrBody'), qrClose = $('qrClose'), qrTitle = $('qrTitle'), quickRepliesBtn = $('quickRepliesBtn'), quickReplyBtn = $('quickReplyBtn');
+
+    // Shared form-field builder
+    function sheetField(label, id, val, ph, textarea) {
+      const input = textarea
+        ? '<textarea class="sheet-textarea" id="' + id + '" placeholder="' + ph + '">' + escapeHtml(val || '') + '</textarea>'
+        : '<input type="text" class="sheet-input" id="' + id + '" placeholder="' + ph + '" value="' + escapeHtml(val || '') + '">';
+      return '<div class="sheet-field"><label for="' + id + '">' + label + '</label>' + input + '</div>';
+    }
+
+    // Category colours (shared by catalog list + product card)
+    function catColor(category) {
+      const c = (category || '').toLowerCase();
+      if (c.indexOf('coir') >= 0 || c.indexOf('coconut') >= 0) return '#2ea043';
+      if (c.indexOf('cook') >= 0 || c.indexOf('alumin') >= 0) return '#e07b39';
+      if (c.indexOf('hand') >= 0 || c.indexOf('stone') >= 0) return '#9b59b6';
+      if (c.indexOf('steel') >= 0 || c.indexOf('kitchen') >= 0) return '#2b6fd6';
+      return '#00a3cc';
+    }
+    function catInitial(name) { return ((name || '?').trim().charAt(0) || '?').toUpperCase(); }
+
+    /* ---------- Business profile ---------- */
+    const BIZ_KEY = 'ibi-msgr-bizprofile-v1';
+    const BIZ_DEFAULT = {
+      name: 'India Business International',
+      category: 'eCommerce — Retail (iINTELLIGENCEi)',
+      hours: 'Mon–Sat · 9:00 AM – 7:00 PM',
+      address: 'Kanyakumari District, Tamil Nadu, India',
+      phone: '',
+      website: 'indiabusinessinternational.online',
+      about: 'eCommerce for the World — coir products, aluminium cookware, stone handicrafts & stainless steel kitchenware.',
+      logo: ''
+    };
+    function loadBiz() { try { return Object.assign({}, BIZ_DEFAULT, JSON.parse(localStorage.getItem(BIZ_KEY) || '{}')); } catch(_) { return Object.assign({}, BIZ_DEFAULT); } }
+    function saveBiz(p) { try { localStorage.setItem(BIZ_KEY, JSON.stringify(p)); } catch(_) {} }
+    let _bizDraftLogo = null;
+
+    const IBI_MARK = '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="5" r="1.7"/><circle cx="12" cy="5" r="1.7"/><circle cx="19" cy="5" r="1.7"/><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/><circle cx="5" cy="19" r="1.7"/><circle cx="12" cy="19" r="1.7"/><circle cx="19" cy="19" r="1.7"/></svg>';
+
+    function bizRow(icon, label, val, isLink) {
+      if (!val) return '';
+      const v = isLink
+        ? '<a href="' + (val.indexOf('http') === 0 ? val : 'https://' + val) + '" target="_blank" rel="noopener">' + escapeHtml(val) + '</a>'
+        : escapeHtml(val);
+      return '<div class="biz-row"><span class="biz-row__ic">' + icon + '</span><span class="biz-row__c"><span class="biz-row__label">' + label + '</span><span class="biz-row__val">' + v + '</span></span></div>';
+    }
+    function renderBizView() {
+      const p = loadBiz();
+      const logoInner = p.logo ? ('<img src="' + p.logo + '" alt="logo">') : IBI_MARK;
+      const icHours = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+      const icAddr = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>';
+      const icPhone = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>';
+      const icWeb = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18z"/></svg>';
+      const icInfo = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/></svg>';
+      bizBody.innerHTML = '<div class="biz-view">'
+        + '<div class="biz-logo">' + logoInner + '</div>'
+        + '<div class="biz-name">' + escapeHtml(p.name || 'Business name') + '</div>'
+        + (p.category ? '<div class="biz-cat">' + escapeHtml(p.category) + '</div>' : '')
+        + bizRow(icHours, 'Hours', p.hours, false)
+        + bizRow(icAddr, 'Address', p.address, false)
+        + bizRow(icPhone, 'Phone', p.phone, false)
+        + bizRow(icWeb, 'Website', p.website, true)
+        + bizRow(icInfo, 'About', p.about, false)
+        + '</div>'
+        + '<div class="sheet-actions"><button type="button" class="sheet-btn sheet-btn--primary" id="bizEditBtn">Edit profile</button></div>';
+      const eb = $('bizEditBtn');
+      if (eb) eb.addEventListener('click', renderBizForm);
+    }
+    function renderBizForm() {
+      const p = loadBiz();
+      _bizDraftLogo = null;
+      const logoInner = p.logo ? ('<img src="' + p.logo + '" alt="logo">') : IBI_MARK;
+      bizBody.innerHTML = '<div class="sheet-form">'
+        + '<div style="display:flex;align-items:center;gap:12px;">'
+        +   '<div class="biz-logo" id="bizLogoPreview" style="margin:0;width:60px;height:60px;border-radius:14px;">' + logoInner + '</div>'
+        +   '<button type="button" class="sheet-btn sheet-btn--ghost" id="bizLogoBtn" style="flex:0 0 auto;padding:9px 14px;">Change logo</button>'
+        + '</div>'
+        + sheetField('Business name', 'bizF_name', p.name, 'India Business International', false)
+        + sheetField('Category', 'bizF_category', p.category, 'e.g. eCommerce — Retail', false)
+        + sheetField('Hours', 'bizF_hours', p.hours, 'Mon–Sat · 9 AM – 7 PM', false)
+        + sheetField('Address', 'bizF_address', p.address, 'City, State, Country', false)
+        + sheetField('Phone', 'bizF_phone', p.phone, 'Contact number', false)
+        + sheetField('Website', 'bizF_website', p.website, 'example.com', false)
+        + sheetField('About', 'bizF_about', p.about, 'Short description', true)
+        + '</div>'
+        + '<div class="sheet-actions"><button type="button" class="sheet-btn sheet-btn--ghost" id="bizCancelBtn">Cancel</button><button type="button" class="sheet-btn sheet-btn--primary" id="bizSaveBtn">Save</button></div>';
+      $('bizLogoBtn').addEventListener('click', () => bizLogoInput.click());
+      $('bizCancelBtn').addEventListener('click', renderBizView);
+      $('bizSaveBtn').addEventListener('click', () => {
+        const np = {
+          name: $('bizF_name').value.trim(),
+          category: $('bizF_category').value.trim(),
+          hours: $('bizF_hours').value.trim(),
+          address: $('bizF_address').value.trim(),
+          phone: $('bizF_phone').value.trim(),
+          website: $('bizF_website').value.trim(),
+          about: $('bizF_about').value.trim(),
+          logo: (_bizDraftLogo !== null) ? _bizDraftLogo : loadBiz().logo
+        };
+        saveBiz(np);
+        renderBizView();
+        showToast('Profile saved', 'success', 1600);
+      });
+    }
+    bizLogoInput.addEventListener('change', async (e) => {
+      const file = e.target.files && e.target.files[0];
+      bizLogoInput.value = '';
+      if (!file || !file.type.startsWith('image/')) return;
+      try {
+        const dataUrl = await resizeImageForWallpaper(file, 320, 0.85);
+        _bizDraftLogo = dataUrl;
+        const prev = $('bizLogoPreview');
+        if (prev) prev.innerHTML = '<img src="' + dataUrl + '" alt="logo">';
+      } catch(_) { showToast('Could not load that image.', 'error', 3000); }
+    });
+    function openBizPanel() {
+      renderBizView();
+      bfBackdrop.classList.add('action-sheet-backdrop--open');
+      bizPanel.classList.add('msginfo--open');
+      pushOverlayState('biz');
+    }
+    function closeBizPanel(fromBack) {
+      if (!bizPanel.classList.contains('msginfo--open')) return;
+      bizPanel.classList.remove('msginfo--open');
+      bfBackdrop.classList.remove('action-sheet-backdrop--open');
+      if (!fromBack && history.state && history.state.ibiOverlay === 'biz') window.history.back();
+    }
+    bizProfileBtn.addEventListener('click', () => { menu.classList.remove('menu--open'); openBizPanel(); });
+    bizClose.addEventListener('click', () => closeBizPanel(false));
+
+    /* ---------- Product catalog ---------- */
+    const CAT_KEY = 'ibi-msgr-catalog-v1';
+    const CAT_DEFAULT = [
+      { id: 'c1', name: 'Coconut Coir Brush', price: '₹149', category: 'Coir', desc: 'Eco-friendly natural coir cleaning brush.' },
+      { id: 'c2', name: 'Aluminium Cookware Set', price: '₹1,299', category: 'Cookware', desc: 'Durable aluminium cookware for everyday cooking.' },
+      { id: 'c3', name: 'Stone Handicraft Bowl', price: '₹499', category: 'Handicrafts', desc: 'Hand-carved natural stone serving bowl.' },
+      { id: 'c4', name: 'Steel Storage Container', price: '₹399', category: 'Kitchenware', desc: 'Airtight stainless steel storage container.' }
+    ];
+    function loadCat() {
+      try {
+        const raw = localStorage.getItem(CAT_KEY);
+        if (raw === null) return CAT_DEFAULT.slice();
+        return JSON.parse(raw) || [];
+      } catch(_) { return []; }
+    }
+    function saveCat(list) { try { localStorage.setItem(CAT_KEY, JSON.stringify(list)); } catch(_) {} }
+    let _catEditId = null;
+
+    function renderCatList() {
+      const list = loadCat();
+      let html = '';
+      if (!list.length) {
+        html += '<div class="sheet-empty">No products yet. Add your first product below.</div>';
+      } else {
+        html += '<div class="sheet-scroll">';
+        list.forEach(p => {
+          html += '<div class="cat-item">'
+            + '<span class="cat-item__badge" style="background:' + catColor(p.category) + ';">' + escapeHtml(catInitial(p.name)) + '</span>'
+            + '<div class="cat-item__body"><span class="cat-item__name">' + escapeHtml(p.name) + '</span>'
+            + '<span class="cat-item__meta"><span class="cat-item__price">' + escapeHtml(p.price || '') + '</span>' + (p.category ? ' · ' + escapeHtml(p.category) : '') + '</span></div>'
+            + '<div class="cat-item__acts">'
+            +   '<button type="button" class="cat-item__act cat-item__act--share" data-cat-share="' + p.id + '" title="Share to chat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4 20-7z"/></svg></button>'
+            +   '<button type="button" class="cat-item__act" data-cat-edit="' + p.id + '" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>'
+            +   '<button type="button" class="cat-item__act cat-item__act--del" data-cat-del="' + p.id + '" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>'
+            + '</div></div>';
+        });
+        html += '</div>';
+      }
+      html += '<button type="button" class="sheet-add" id="catAddBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add product</button>';
+      catBody.innerHTML = html;
+      catTitle.textContent = 'Product Catalog';
+      catBody.querySelectorAll('[data-cat-share]').forEach(b => b.addEventListener('click', () => shareProduct(b.dataset.catShare)));
+      catBody.querySelectorAll('[data-cat-edit]').forEach(b => b.addEventListener('click', () => renderCatForm(b.dataset.catEdit)));
+      catBody.querySelectorAll('[data-cat-del]').forEach(b => b.addEventListener('click', () => {
+        saveCat(loadCat().filter(x => x.id !== b.dataset.catDel));
+        renderCatList();
+      }));
+      const ab = $('catAddBtn');
+      if (ab) ab.addEventListener('click', () => renderCatForm(null));
+    }
+    function renderCatForm(id) {
+      const p = id ? (loadCat().find(x => x.id === id) || {}) : {};
+      _catEditId = id;
+      catBody.innerHTML = '<div class="sheet-form">'
+        + sheetField('Product name', 'catF_name', p.name, 'e.g. Coconut Coir Brush', false)
+        + sheetField('Price', 'catF_price', p.price, 'e.g. ₹149', false)
+        + sheetField('Category', 'catF_category', p.category, 'Coir / Cookware / Handicrafts / Kitchenware', false)
+        + sheetField('Description', 'catF_desc', p.desc, 'Short description', true)
+        + '</div>'
+        + '<div class="sheet-actions"><button type="button" class="sheet-btn sheet-btn--ghost" id="catCancelBtn">Cancel</button><button type="button" class="sheet-btn sheet-btn--primary" id="catSaveBtn">Save</button></div>';
+      catTitle.textContent = id ? 'Edit Product' : 'Add Product';
+      $('catCancelBtn').addEventListener('click', renderCatList);
+      $('catSaveBtn').addEventListener('click', () => {
+        const name = $('catF_name').value.trim();
+        if (!name) { showToast('Please enter a product name.', 'error', 2500); return; }
+        const item = { id: _catEditId || ('c' + Date.now()), name: name, price: $('catF_price').value.trim(), category: $('catF_category').value.trim(), desc: $('catF_desc').value.trim() };
+        let list = loadCat();
+        if (_catEditId) list = list.map(x => x.id === _catEditId ? item : x); else list.push(item);
+        saveCat(list);
+        renderCatList();
+        showToast('Product saved', 'success', 1500);
+      });
+    }
+    function openCatPanel() {
+      renderCatList();
+      bfBackdrop.classList.add('action-sheet-backdrop--open');
+      catPanel.classList.add('msginfo--open');
+      pushOverlayState('cat');
+    }
+    function closeCatPanel(fromBack) {
+      if (!catPanel.classList.contains('msginfo--open')) return;
+      catPanel.classList.remove('msginfo--open');
+      bfBackdrop.classList.remove('action-sheet-backdrop--open');
+      if (!fromBack && history.state && history.state.ibiOverlay === 'cat') window.history.back();
+    }
+    catalogBtn.addEventListener('click', () => { menu.classList.remove('menu--open'); openCatPanel(); });
+    catClose.addEventListener('click', () => closeCatPanel(false));
+    amProduct.addEventListener('click', () => { closeAttachMenu(); openCatPanel(); });
+
+    function shareProduct(id) {
+      if (!identity) { showIdentityModal(false); return; }
+      const p = loadCat().find(x => x.id === id);
+      if (!p) return;
+      closeCatPanel(false);
+      _sendProductMessage(p);
+    }
+    async function _sendProductMessage(p) {
+      const messageId = 'msg_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10);
+      const ts = new Date().toISOString();
+      const att = { kind: 'product', name: p.name, price: p.price, category: p.category, desc: p.desc, by: identity.sender };
+      const localMsg = {
+        messageId, timestamp: ts,
+        sender: identity.sender, senderId: identity.senderId,
+        phone: identity.phone || '', type: 'file', text: '',
+        imageId: '', imageW: '', imageH: '',
+        attachment: att, replyTo: null, status: 'sending'
+      };
+      history.push(localMsg); saveHistory(); renderChat(true);
+      setSending(true);
+      const payload = {
+        messageId,
+        sender: identity.sender, senderId: identity.senderId,
+        phone: identity.phone || '', text: '',
+        clientTimestamp: ts,
+        userAgent: navigator.userAgent.substring(0, 200),
+        attachment: att
+      };
+      await _postToGAS(messageId, JSON.stringify(payload));
+      setSending(false);
+    }
+
+    /* ---------- Quick replies ---------- */
+    const QR_KEY = 'ibi-msgr-quickreplies-v1';
+    const QR_DEFAULT = [
+      { id: 'q1', title: 'Order status', text: 'Your order is being processed and will be dispatched soon. ✅' },
+      { id: 'q2', title: 'Shipping time', text: 'Orders are dispatched within 1–2 business days. Delivery takes about 3–7 days depending on your location. 🚚' },
+      { id: 'q3', title: 'Payment options', text: 'We accept UPI, cards, and net banking through our secure checkout.' },
+      { id: 'q4', title: 'Return policy', text: 'Returns are accepted within 7 days of delivery for unused items in original packaging.' },
+      { id: 'q5', title: 'Thank you', text: 'Thank you for shopping with iINTELLIGENCEi — India Business International! 🙏' }
+    ];
+    function loadQR() {
+      try {
+        const raw = localStorage.getItem(QR_KEY);
+        if (raw === null) return QR_DEFAULT.slice();
+        return JSON.parse(raw) || [];
+      } catch(_) { return []; }
+    }
+    function saveQR(list) { try { localStorage.setItem(QR_KEY, JSON.stringify(list)); } catch(_) {} }
+    let _qrEditId = null;
+
+    function renderQRList() {
+      const list = loadQR();
+      let html = '';
+      if (!list.length) {
+        html += '<div class="sheet-empty">No quick replies yet. Add a saved template below.</div>';
+      } else {
+        html += '<div class="sheet-scroll">';
+        list.forEach(q => {
+          html += '<div class="qr-item" data-qr-use="' + q.id + '">'
+            + '<div class="qr-item__body"><span class="qr-item__title">' + escapeHtml(q.title) + '</span>'
+            + '<span class="qr-item__text">' + escapeHtml(q.text) + '</span></div>'
+            + '<button type="button" class="qr-item__act" data-qr-edit="' + q.id + '" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>'
+            + '<button type="button" class="qr-item__act qr-item__act--del" data-qr-del="' + q.id + '" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>'
+            + '</div>';
+        });
+        html += '</div>';
+      }
+      html += '<button type="button" class="sheet-add" id="qrAddBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add quick reply</button>';
+      qrBody.innerHTML = html;
+      qrTitle.textContent = 'Quick Replies';
+      qrBody.querySelectorAll('[data-qr-use]').forEach(row => {
+        row.addEventListener('click', (e) => {
+          if (e.target.closest('[data-qr-edit]') || e.target.closest('[data-qr-del]')) return;
+          useQuickReply(row.dataset.qrUse);
+        });
+      });
+      qrBody.querySelectorAll('[data-qr-edit]').forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); renderQRForm(b.dataset.qrEdit); }));
+      qrBody.querySelectorAll('[data-qr-del]').forEach(b => b.addEventListener('click', (e) => {
+        e.stopPropagation();
+        saveQR(loadQR().filter(x => x.id !== b.dataset.qrDel));
+        renderQRList();
+      }));
+      const ab = $('qrAddBtn');
+      if (ab) ab.addEventListener('click', () => renderQRForm(null));
+    }
+    function renderQRForm(id) {
+      const q = id ? (loadQR().find(x => x.id === id) || {}) : {};
+      _qrEditId = id;
+      qrBody.innerHTML = '<div class="sheet-form">'
+        + sheetField('Title', 'qrF_title', q.title, 'e.g. Shipping time', false)
+        + sheetField('Message', 'qrF_text', q.text, 'The saved reply text…', true)
+        + '</div>'
+        + '<div class="sheet-actions"><button type="button" class="sheet-btn sheet-btn--ghost" id="qrCancelBtn">Cancel</button><button type="button" class="sheet-btn sheet-btn--primary" id="qrSaveBtn">Save</button></div>';
+      qrTitle.textContent = id ? 'Edit Quick Reply' : 'Add Quick Reply';
+      $('qrCancelBtn').addEventListener('click', renderQRList);
+      $('qrSaveBtn').addEventListener('click', () => {
+        const title = $('qrF_title').value.trim();
+        const text = $('qrF_text').value.trim();
+        if (!title || !text) { showToast('Please enter a title and message.', 'error', 2500); return; }
+        const item = { id: _qrEditId || ('q' + Date.now()), title: title, text: text };
+        let list = loadQR();
+        if (_qrEditId) list = list.map(x => x.id === _qrEditId ? item : x); else list.push(item);
+        saveQR(list);
+        renderQRList();
+        showToast('Quick reply saved', 'success', 1500);
+      });
+    }
+    function useQuickReply(id) {
+      const q = loadQR().find(x => x.id === id);
+      if (!q) return;
+      closeQRPanel(false);
+      const cur = messageInput.value;
+      messageInput.value = cur ? (cur.replace(/\s*$/, '') + ' ' + q.text) : q.text;
+      if (typeof updateSendButton === 'function') updateSendButton();
+      if (typeof autoGrow === 'function') autoGrow();
+      setTimeout(() => { messageInput.focus(); try { messageInput.setSelectionRange(messageInput.value.length, messageInput.value.length); } catch(_) {} }, 60);
+    }
+    function openQRPanel() {
+      renderQRList();
+      bfBackdrop.classList.add('action-sheet-backdrop--open');
+      qrPanel.classList.add('msginfo--open');
+      pushOverlayState('qr');
+    }
+    function closeQRPanel(fromBack) {
+      if (!qrPanel.classList.contains('msginfo--open')) return;
+      qrPanel.classList.remove('msginfo--open');
+      bfBackdrop.classList.remove('action-sheet-backdrop--open');
+      if (!fromBack && history.state && history.state.ibiOverlay === 'qr') window.history.back();
+    }
+    quickRepliesBtn.addEventListener('click', () => { menu.classList.remove('menu--open'); openQRPanel(); });
+    quickReplyBtn.addEventListener('click', () => openQRPanel());
+    qrClose.addEventListener('click', () => closeQRPanel(false));
 
     // Edit-mode state
     let editingMessageId = null;
