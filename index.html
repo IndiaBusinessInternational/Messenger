@@ -182,6 +182,83 @@
       scroll-behavior: smooth;
       -webkit-overflow-scrolling: touch;
     }
+
+    /* ============ Chat wallpapers (per-device) ============ */
+    /* Plain — solid background, no pattern */
+    .chat[data-wp="plain"] { background-image: none; }
+    /* Dot grid is the default (no attribute or data-wp="default") */
+    /* Solid / gradient presets (light values; dark overrides below) */
+    .chat[data-wp="cyan"]   { background-image: none; background-color: #dff4fd; }
+    .chat[data-wp="graphite"]{ background-image: none; background-color: #20293a; }
+    .chat[data-wp="sand"]   { background-image: none; background-color: #efe7da; }
+    .chat[data-wp="mint"]   { background-image: none; background-color: #e2f2e9; }
+    .chat[data-wp="blush"]  { background-image: none; background-color: #f4e6ee; }
+    .chat[data-wp="doodle"] {
+      background-color: var(--chat-bg);
+      background-image:
+        radial-gradient(var(--bubble-pattern) 1.2px, transparent 1.2px),
+        radial-gradient(var(--bubble-pattern) 1.2px, transparent 1.2px);
+      background-size: 22px 22px, 22px 22px;
+      background-position: 0 0, 11px 11px;
+    }
+    [data-theme="dark"] .chat[data-wp="cyan"]   { background-color: #0c2630; }
+    [data-theme="dark"] .chat[data-wp="graphite"]{ background-color: #11161f; }
+    [data-theme="dark"] .chat[data-wp="sand"]   { background-color: #2a2620; }
+    [data-theme="dark"] .chat[data-wp="mint"]   { background-color: #16241c; }
+    [data-theme="dark"] .chat[data-wp="blush"]  { background-color: #261821; }
+
+    /* Custom image wallpaper — covers the chat, stays fixed as messages scroll,
+       with a baked-in readability scrim so bubbles stay legible */
+    .chat[data-wp="custom"] {
+      background-image: linear-gradient(rgba(232,237,242,0.32), rgba(232,237,242,0.32)), var(--wp-custom, none);
+      background-size: cover, cover;
+      background-position: center, center;
+      background-repeat: no-repeat, no-repeat;
+    }
+    [data-theme="dark"] .chat[data-wp="custom"] {
+      background-image: linear-gradient(rgba(8,12,18,0.46), rgba(8,12,18,0.46)), var(--wp-custom, none);
+    }
+
+    /* ============ Wallpaper picker ============ */
+    .wp-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      padding: 4px 16px 8px;
+    }
+    .wp-swatch {
+      position: relative;
+      aspect-ratio: 1 / 1.4;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      cursor: pointer;
+      overflow: hidden;
+      background-size: cover; background-position: center;
+      transition: transform 0.1s, border-color 0.15s;
+    }
+    .wp-swatch:active { transform: scale(0.95); }
+    .wp-swatch--active { border-color: var(--ibi-cyan); box-shadow: 0 0 0 2px rgba(0,197,255,0.35); }
+    .wp-swatch__label {
+      position: absolute; left: 0; right: 0; bottom: 0;
+      font-size: 11px; font-weight: 600; text-align: center;
+      padding: 3px 2px; color: #fff;
+      background: linear-gradient(transparent, rgba(0,0,0,0.55));
+    }
+    .wp-swatch__check {
+      position: absolute; top: 6px; right: 6px;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: var(--ibi-cyan); color: #fff;
+      display: none; place-items: center;
+    }
+    .wp-swatch--active .wp-swatch__check { display: grid; }
+    .wp-swatch__check svg { width: 13px; height: 13px; }
+    .wp-swatch--upload {
+      display: grid; place-items: center;
+      color: var(--ibi-cyan);
+      background: var(--surface-2);
+      border-style: dashed;
+    }
+    .wp-swatch--upload svg { width: 26px; height: 26px; }
     .chat__empty {
       margin: auto;
       padding: 32px 24px;
@@ -1845,7 +1922,7 @@
       </div>
 
       <div class="hdr__title-block" id="hdrTitleBlock">
-        <span class="hdr__name">IBI Messenger <span class="hdr__version" id="appVersion">v4.3</span></span>
+        <span class="hdr__name">IBI Messenger <span class="hdr__version" id="appVersion">v4.4</span></span>
         <span class="hdr__sub">
           <span class="hdr__dot" id="hdrDot"></span>
           <span id="hdrStatus">You: <strong id="hdrSenderName">—</strong></span>
@@ -1878,6 +1955,10 @@
             <button type="button" class="menu__item" id="openSheetBtn" role="menuitem">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
               Open Google Sheet
+            </button>
+            <button type="button" class="menu__item" id="wallpaperBtn" role="menuitem">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+              Chat wallpaper
             </button>
             <button type="button" class="menu__item" id="starredBtn" role="menuitem">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
@@ -2083,6 +2164,21 @@
     </div>
     <div class="crop-editor__hint">Drag the corners to crop · drag the centre to move</div>
   </div>
+
+  <!-- Wallpaper picker -->
+  <div class="action-sheet-backdrop" id="wpBackdrop"></div>
+  <div class="msginfo" id="wpPanel" role="dialog" aria-label="Chat wallpaper" aria-modal="true">
+    <div class="msginfo__handle" aria-hidden="true"></div>
+    <div class="msginfo__header">
+      <div class="msginfo__icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+      </div>
+      <h3 class="msginfo__title">Chat Wallpaper</h3>
+    </div>
+    <div class="wp-grid" id="wpGrid"></div>
+    <div class="msginfo__close"><button type="button" id="wpClose">Close</button></div>
+  </div>
+  <input type="file" id="wpInput" accept="image/*" hidden />
 
   <!-- Video player modal -->
   <div class="video-modal" id="videoModal" role="dialog" aria-label="Video player" aria-modal="true">
@@ -3279,6 +3375,10 @@
         closeLocationSheet(true);
         return;
       }
+      if (wpPanel.classList.contains('msginfo--open')) {
+        closeWallpaperPanel(true);
+        return;
+      }
       if (lightbox.classList.contains('lightbox--open')) {
         closeLightbox(true);
         return;
@@ -3483,6 +3583,152 @@
     // =========================================================
     // Stars (local per-device bookmarks)
     // =========================================================
+    // =========================================================
+    // Chat wallpaper (per-device personal preference)
+    // =========================================================
+    const WP_KEY = 'ibi-msgr-wallpaper-v1';
+    const WP_CUSTOM_KEY = 'ibi-msgr-wallpaper-custom-v1';
+    const WP_PRESETS = [
+      { id: 'default',  label: 'Default',  css: 'radial-gradient(rgba(0,0,0,0.06) 1.2px, transparent 1.2px)', bg: '#e8edf2', size: '14px 14px' },
+      { id: 'plain',    label: 'Plain',    bg: '#e8edf2' },
+      { id: 'cyan',     label: 'Cyan',     bg: '#dff4fd' },
+      { id: 'graphite', label: 'Graphite', bg: '#20293a' },
+      { id: 'sand',     label: 'Sand',     bg: '#efe7da' },
+      { id: 'mint',     label: 'Mint',     bg: '#e2f2e9' },
+      { id: 'blush',    label: 'Blush',    bg: '#f4e6ee' },
+      { id: 'doodle',   label: 'Dots',     css: 'radial-gradient(rgba(0,0,0,0.06) 1.2px, transparent 1.2px)', bg: '#e8edf2', size: '11px 11px' }
+    ];
+
+    function getWallpaper() { try { return localStorage.getItem(WP_KEY) || 'default'; } catch(_) { return 'default'; } }
+    function getCustomWallpaper() { try { return localStorage.getItem(WP_CUSTOM_KEY) || ''; } catch(_) { return ''; } }
+
+    function applyWallpaper() {
+      const wp = getWallpaper();
+      if (wp === 'custom') {
+        const data = getCustomWallpaper();
+        if (data) {
+          chatEl.style.setProperty('--wp-custom', 'url("' + data + '")');
+          chatEl.setAttribute('data-wp', 'custom');
+          return;
+        }
+        // No custom image stored → fall back to default
+        chatEl.setAttribute('data-wp', 'default');
+        return;
+      }
+      chatEl.style.removeProperty('--wp-custom');
+      chatEl.setAttribute('data-wp', wp);
+    }
+
+    function setWallpaper(id) {
+      try { localStorage.setItem(WP_KEY, id); } catch(_) {}
+      applyWallpaper();
+      renderWpGrid();
+    }
+
+    const wallpaperBtn = $('wallpaperBtn');
+    const wpPanel = $('wpPanel');
+    const wpBackdrop = $('wpBackdrop');
+    const wpGrid = $('wpGrid');
+    const wpClose = $('wpClose');
+    const wpInput = $('wpInput');
+
+    function swatchStyle(p) {
+      // Build an inline background that previews the preset
+      if (p.css) return 'background-color:' + p.bg + ';background-image:' + p.css + ';background-size:' + (p.size || '12px 12px') + ';';
+      return 'background-color:' + p.bg + ';';
+    }
+
+    function renderWpGrid() {
+      const cur = getWallpaper();
+      let html = '';
+      WP_PRESETS.forEach(p => {
+        html += '<div class="wp-swatch' + (cur === p.id ? ' wp-swatch--active' : '') + '" data-wp-id="' + p.id + '" style="' + swatchStyle(p) + '">'
+              + '<span class="wp-swatch__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>'
+              + '<span class="wp-swatch__label">' + p.label + '</span></div>';
+      });
+      // Custom image swatch
+      const customData = getCustomWallpaper();
+      const customActive = cur === 'custom' && customData;
+      const customStyle = customData ? ('background-image:url("' + customData + '");') : '';
+      html += '<div class="wp-swatch wp-swatch--upload' + (customActive ? ' wp-swatch--active' : '') + '" id="wpUploadSwatch" style="' + customStyle + '">'
+            + (customData
+                ? '<span class="wp-swatch__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span class="wp-swatch__label">My image</span>'
+                : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/><line x1="12" y1="8" x2="12" y2="14" transform="translate(6 6)"/></svg>')
+            + '</div>';
+      wpGrid.innerHTML = html;
+
+      wpGrid.querySelectorAll('[data-wp-id]').forEach(sw => {
+        sw.addEventListener('click', () => setWallpaper(sw.dataset.wpId));
+      });
+      const up = $('wpUploadSwatch');
+      if (up) up.addEventListener('click', () => {
+        if (getCustomWallpaper()) { setWallpaper('custom'); } // re-select existing
+        wpInput.click(); // also allow picking a new one
+      });
+    }
+
+    function openWallpaperPanel() {
+      renderWpGrid();
+      wpBackdrop.classList.add('action-sheet-backdrop--open');
+      wpPanel.classList.add('msginfo--open');
+      pushOverlayState('wp');
+    }
+    function closeWallpaperPanel(fromBack) {
+      if (!wpPanel.classList.contains('msginfo--open')) return;
+      wpPanel.classList.remove('msginfo--open');
+      wpBackdrop.classList.remove('action-sheet-backdrop--open');
+      if (!fromBack && history.state && history.state.ibiOverlay === 'wp') window.history.back();
+    }
+    wallpaperBtn.addEventListener('click', () => { menu.classList.remove('menu--open'); openWallpaperPanel(); });
+    wpBackdrop.addEventListener('click', () => closeWallpaperPanel(false));
+    wpClose.addEventListener('click', () => closeWallpaperPanel(false));
+
+    // Custom wallpaper upload — resize/compress, store as data URL, apply
+    wpInput.addEventListener('change', async (e) => {
+      const file = e.target.files && e.target.files[0];
+      wpInput.value = '';
+      if (!file || !file.type.startsWith('image/')) return;
+      showToast('Setting wallpaper…', 'info', 1500);
+      try {
+        const dataUrl = await resizeImageForWallpaper(file, 1280, 0.78);
+        // localStorage has ~5MB; warn if the result is too big
+        if (dataUrl.length > 4_000_000) {
+          showToast('Image is too large. Try a smaller one.', 'error', 4000);
+          return;
+        }
+        try { localStorage.setItem(WP_CUSTOM_KEY, dataUrl); }
+        catch (err) { showToast('Not enough storage for this image. Try a smaller one.', 'error', 4500); return; }
+        setWallpaper('custom');
+        showToast('Wallpaper updated', 'success', 1800);
+      } catch (err) {
+        console.error('Wallpaper set failed:', err);
+        showToast('Could not set that image.', 'error', 4000);
+      }
+    });
+
+    function resizeImageForWallpaper(file, maxDim, quality) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = () => {
+          URL.revokeObjectURL(url);
+          let { width, height } = img;
+          const scale = Math.min(1, maxDim / Math.max(width, height));
+          width = Math.round(width * scale); height = Math.round(height * scale);
+          const canvas = document.createElement('canvas');
+          canvas.width = width; canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('image load failed')); };
+        img.src = url;
+      });
+    }
+
+    // Apply saved wallpaper on startup
+    applyWallpaper();
+
     const STARRED_KEY = 'ibi-msgr-starred-v1';
     let starredIds = (function() {
       try { return new Set(JSON.parse(localStorage.getItem(STARRED_KEY) || '[]')); }
