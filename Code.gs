@@ -163,6 +163,15 @@ function _handleSend(payload) {
       updatedAt: new Date().toISOString(),
       label: _str(fileAttach.label, 120)
     });
+  } else if (fileAttach && fileAttach.kind === 'call') {
+    // Call invite — just a room reference, no Drive upload
+    attachmentJson = JSON.stringify({
+      kind: 'call',
+      room: _str(fileAttach.room, 120),
+      mode: (fileAttach.mode === 'video') ? 'video' : 'audio',
+      by: _str(fileAttach.by, 120),
+      startedAt: new Date().toISOString()
+    });
   } else if (fileAttach && fileAttach.base64) {
     try {
       const up = _uploadFileToDrive(fileAttach, sender);

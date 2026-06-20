@@ -854,6 +854,61 @@
     }
     .msginfo__close button:hover { background: var(--border); }
 
+    /* ============ Call invite card + Jitsi modal ============ */
+    .msg__call {
+      display: flex; align-items: center; gap: 11px;
+      padding: 9px 11px; border-radius: 10px; margin-bottom: 4px;
+      min-width: 210px; max-width: 280px;
+    }
+    .msg--sent .msg__call { background: rgba(0,26,34,0.14); }
+    .msg--recv .msg__call { background: var(--surface-2); }
+    .msg__call-ic {
+      flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%;
+      display: grid; place-items: center; color: #fff; background: #2ea043;
+    }
+    .msg__call-ic svg { width: 20px; height: 20px; }
+    .msg__call-body { flex: 1; min-width: 0; }
+    .msg__call-title { display: block; font-size: 13.5px; font-weight: 600; color: var(--text); }
+    .msg__call-sub { display: block; font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+    .msg__call-join {
+      flex-shrink: 0;
+      background: var(--ibi-cyan); color: #fff; border: 0;
+      border-radius: 16px; padding: 6px 14px;
+      font-family: 'Roboto', sans-serif; font-size: 13px; font-weight: 600;
+      cursor: pointer;
+    }
+    .msg__call-join:active { transform: scale(0.96); }
+
+    .call-modal {
+      position: fixed; inset: 0;
+      background: #0b0f14;
+      z-index: 500;
+      display: none;
+      flex-direction: column;
+    }
+    .call-modal--open { display: flex; }
+    .call-modal__header {
+      flex: 0 0 auto;
+      display: flex; align-items: center; gap: 10px;
+      padding: max(10px, env(safe-area-inset-top)) 14px 8px;
+      background: #11161d;
+      color: #fff;
+    }
+    .call-modal__title { flex: 1; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .call-modal__btn {
+      flex-shrink: 0; background: transparent; border: 0; color: #cdd5df;
+      cursor: pointer; padding: 6px; border-radius: 8px; display: grid; place-items: center;
+    }
+    .call-modal__btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .call-modal__btn svg { width: 20px; height: 20px; }
+    .call-modal__btn--end { background: #e23b3b; color: #fff; border-radius: 20px; padding: 6px 14px; font-size: 13px; font-weight: 600; }
+    .call-modal__body { flex: 1; min-height: 0; position: relative; }
+    .call-modal__body iframe { width: 100%; height: 100%; border: 0; }
+    .call-modal__loading {
+      position: absolute; inset: 0; display: grid; place-items: center;
+      color: #cdd5df; font-size: 14px; text-align: center; padding: 20px;
+    }
+
     /* ============ Rich text formatting ============ */
     .msg__text strong { font-weight: 700; }
     .msg__text em { font-style: italic; }
@@ -1984,7 +2039,7 @@
       </div>
 
       <div class="hdr__title-block" id="hdrTitleBlock">
-        <span class="hdr__name">IBI Messenger <span class="hdr__version" id="appVersion">v4.6</span></span>
+        <span class="hdr__name">IBI Messenger <span class="hdr__version" id="appVersion">v5.0</span></span>
         <span class="hdr__sub">
           <span class="hdr__dot" id="hdrDot"></span>
           <span id="hdrStatus">You: <strong id="hdrSenderName">—</strong></span>
@@ -1992,6 +2047,12 @@
       </div>
 
       <div class="hdr__actions" id="hdrActions">
+        <button type="button" class="icon-btn" id="voiceCallBtn" aria-label="Voice call" title="Voice call">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        </button>
+        <button type="button" class="icon-btn" id="videoCallBtn" aria-label="Video call" title="Video call">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m23 7-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+        </button>
         <button type="button" class="icon-btn" id="searchToggle" aria-label="Search messages" title="Search">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="11" cy="11" r="8"/>
@@ -2250,6 +2311,20 @@
     <div class="msginfo__close"><button type="button" id="wpClose">Close</button></div>
   </div>
   <input type="file" id="wpInput" accept="image/*" hidden />
+
+  <!-- Call modal (Jitsi embed) -->
+  <div class="call-modal" id="callModal" role="dialog" aria-label="Call" aria-modal="true">
+    <div class="call-modal__header">
+      <span class="call-modal__title" id="callModalTitle">Call</span>
+      <button type="button" class="call-modal__btn" id="callOpenTab" aria-label="Open in new tab" title="Open in new tab">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      </button>
+      <button type="button" class="call-modal__btn call-modal__btn--end" id="callEndBtn">Leave</button>
+    </div>
+    <div class="call-modal__body" id="callModalBody">
+      <div class="call-modal__loading" id="callLoading">Connecting…</div>
+    </div>
+  </div>
 
   <!-- Video player modal -->
   <div class="video-modal" id="videoModal" role="dialog" aria-label="Video player" aria-modal="true">
@@ -3185,12 +3260,23 @@
         html += '<div style="opacity:.7;font-size:13px;font-style:italic;padding:6px 0;">[Image — dropped from local cache]</div>';
       }
 
-      // File / document / video / audio / location attachment
-      if (msg.attachment && (msg.attachment.fileId || msg.attachment._local || msg.attachment.kind === 'location')) {
+      // File / document / video / audio / location / call attachment
+      if (msg.attachment && (msg.attachment.fileId || msg.attachment._local || msg.attachment.kind === 'location' || msg.attachment.kind === 'call')) {
         const att = msg.attachment;
-        const pending = att.kind !== 'location' && att._local && !att.fileId && !att._localUrl;
+        const pending = att.kind !== 'location' && att.kind !== 'call' && att._local && !att.fileId && !att._localUrl;
 
-        if (att.kind === 'location') {
+        if (att.kind === 'call') {
+          const isVideo = att.mode === 'video';
+          const who = (att.by || msg.sender || 'Someone').split(',')[0].trim();
+          const callIcon = isVideo
+            ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m23 7-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>'
+            : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>';
+          html += '<div class="msg__call" data-call-room="' + escapeHtml(att.room || '') + '" data-call-mode="' + (isVideo ? 'video' : 'audio') + '">'
+                + '<span class="msg__call-ic">' + callIcon + '</span>'
+                + '<div class="msg__call-body"><span class="msg__call-title">' + (isVideo ? 'Video call' : 'Voice call') + '</span>'
+                + '<span class="msg__call-sub">Started by ' + escapeHtml(who) + '</span></div>'
+                + '<button type="button" class="msg__call-join">Join</button></div>';
+        } else if (att.kind === 'location') {
           const lat = att.lat, lng = att.lng;
           const isLive = !!att.live;
           const ended = isLive && att.liveUntil && (new Date(att.liveUntil).getTime() < Date.now());
@@ -3341,6 +3427,17 @@
       if (videoEl && msg.attachment) {
         videoEl.addEventListener('click', () => openVideoModal(msg.attachment));
       }
+      // Call invite: Join button opens the room
+      const callEl = el.querySelector('.msg__call');
+      if (callEl) {
+        const joinBtn = callEl.querySelector('.msg__call-join');
+        const join = () => {
+          const room = callEl.dataset.callRoom;
+          if (room) openCall(room, callEl.dataset.callMode);
+        };
+        if (joinBtn) joinBtn.addEventListener('click', (e) => { e.stopPropagation(); join(); });
+        callEl.addEventListener('click', join);
+      }
       // Location: tap to open in Google Maps; Stop button ends live sharing
       const locEl = el.querySelector('.msg__location');
       if (locEl) {
@@ -3473,6 +3570,10 @@
     }
     window.addEventListener('popstate', () => {
       // Highest-priority overlay first
+      if (callModal.classList.contains('call-modal--open')) {
+        closeCall(true);
+        return;
+      }
       if (videoModal.classList.contains('video-modal--open')) {
         closeVideoModal(true);
         return;
@@ -5122,6 +5223,139 @@
       if (!fromBack && history.state && history.state.ibiOverlay === 'video') window.history.back();
     }
     videoModalClose.addEventListener('click', () => closeVideoModal(false));
+
+    // =========================================================
+    // Voice & Video calls (Jitsi Meet embed)
+    // =========================================================
+    const JITSI_DOMAIN = 'meet.jit.si';
+    const voiceCallBtn = $('voiceCallBtn');
+    const videoCallBtn = $('videoCallBtn');
+    const callModal = $('callModal');
+    const callModalBody = $('callModalBody');
+    const callModalTitle = $('callModalTitle');
+    const callOpenTab = $('callOpenTab');
+    const callEndBtn = $('callEndBtn');
+    const callLoading = $('callLoading');
+    let jitsiApi = null;
+    let jitsiScriptLoading = null;
+    let currentCallRoom = '';
+
+    function loadJitsiScript() {
+      if (window.JitsiMeetExternalAPI) return Promise.resolve();
+      if (jitsiScriptLoading) return jitsiScriptLoading;
+      jitsiScriptLoading = new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://' + JITSI_DOMAIN + '/external_api.js';
+        s.async = true;
+        s.onload = () => resolve();
+        s.onerror = () => reject(new Error('Failed to load Jitsi'));
+        document.head.appendChild(s);
+      });
+      return jitsiScriptLoading;
+    }
+
+    function newRoomName() {
+      // Unguessable room name keeps the call private
+      const rnd = Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 6);
+      return 'IBIMessenger' + rnd;
+    }
+
+    // Start a new call: post an invite to the channel, then join
+    async function startCall(mode) {
+      if (!identity) { showIdentityModal(false); return; }
+      const room = newRoomName();
+      _sendCallInvite(room, mode); // post invite so the team can join (group support)
+      openCall(room, mode);
+    }
+
+    async function _sendCallInvite(room, mode) {
+      const messageId = 'msg_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10);
+      const ts = new Date().toISOString();
+      const att = { kind: 'call', room: room, mode: mode, by: identity.sender, startedAt: ts };
+      const localMsg = {
+        messageId, timestamp: ts,
+        sender: identity.sender, senderId: identity.senderId,
+        phone: identity.phone || '', type: 'file', text: '',
+        imageId: '', imageW: '', imageH: '',
+        attachment: att, replyTo: null, status: 'sending'
+      };
+      history.push(localMsg); saveHistory(); renderChat(true);
+      const payload = {
+        messageId,
+        sender: identity.sender, senderId: identity.senderId,
+        phone: identity.phone || '', text: '',
+        clientTimestamp: ts,
+        userAgent: navigator.userAgent.substring(0, 200),
+        attachment: { kind: 'call', room: room, mode: mode, by: identity.sender }
+      };
+      _postToGAS(messageId, JSON.stringify(payload));
+    }
+
+    async function openCall(room, mode) {
+      currentCallRoom = room;
+      callModalTitle.textContent = (mode === 'video' ? 'Video call' : 'Voice call');
+      callLoading.style.display = 'grid';
+      callLoading.textContent = 'Connecting…';
+      callModal.classList.add('call-modal--open');
+      pushOverlayState('call');
+
+      try {
+        await loadJitsiScript();
+      } catch (err) {
+        callLoading.textContent = 'Opening call in a new tab…';
+        window.open('https://' + JITSI_DOMAIN + '/' + room, '_blank', 'noopener');
+        return;
+      }
+      if (!window.JitsiMeetExternalAPI) {
+        window.open('https://' + JITSI_DOMAIN + '/' + room, '_blank', 'noopener');
+        return;
+      }
+
+      if (jitsiApi) { try { jitsiApi.dispose(); } catch(_) {} jitsiApi = null; }
+      callModalBody.querySelectorAll('iframe').forEach(f => f.remove());
+
+      const options = {
+        roomName: room,
+        parentNode: callModalBody,
+        width: '100%', height: '100%',
+        userInfo: { displayName: identity.sender ? identity.sender.split(',')[0].trim() : 'IBI' },
+        configOverwrite: {
+          startWithVideoMuted: (mode !== 'video'),
+          startWithAudioMuted: false,
+          prejoinPageEnabled: false,
+          disableDeepLinking: true
+        },
+        interfaceConfigOverwrite: {
+          SHOW_JITSI_WATERMARK: false,
+          SHOW_WATERMARK_FOR_GUESTS: false,
+          MOBILE_APP_PROMO: false
+        }
+      };
+      try {
+        jitsiApi = new JitsiMeetExternalAPI(JITSI_DOMAIN, options);
+        jitsiApi.addEventListener('videoConferenceJoined', () => { callLoading.style.display = 'none'; });
+        jitsiApi.addEventListener('readyToClose', () => closeCall(false));
+      } catch (err) {
+        console.error('Jitsi init failed:', err);
+        window.open('https://' + JITSI_DOMAIN + '/' + room, '_blank', 'noopener');
+      }
+    }
+
+    function closeCall(fromBack) {
+      if (!callModal.classList.contains('call-modal--open')) return;
+      if (jitsiApi) { try { jitsiApi.dispose(); } catch(_) {} jitsiApi = null; }
+      callModalBody.querySelectorAll('iframe').forEach(f => f.remove());
+      callModal.classList.remove('call-modal--open');
+      currentCallRoom = '';
+      if (!fromBack && history.state && history.state.ibiOverlay === 'call') window.history.back();
+    }
+
+    voiceCallBtn.addEventListener('click', () => startCall('audio'));
+    videoCallBtn.addEventListener('click', () => startCall('video'));
+    callEndBtn.addEventListener('click', () => closeCall(false));
+    callOpenTab.addEventListener('click', () => {
+      if (currentCallRoom) window.open('https://' + JITSI_DOMAIN + '/' + currentCallRoom, '_blank', 'noopener');
+    });
 
     // Gallery — multiple files
     fileInput.addEventListener('change', async (e) => {
