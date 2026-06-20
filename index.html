@@ -843,6 +843,57 @@
     }
     .msginfo__close button:hover { background: var(--border); }
 
+    /* ============ Rich text formatting ============ */
+    .msg__text strong { font-weight: 700; }
+    .msg__text em { font-style: italic; }
+    .msg__text s { text-decoration: line-through; opacity: 0.85; }
+    .msg-code {
+      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+      font-size: 0.9em;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 0 4px;
+    }
+    .msg--sent .msg-code { background: rgba(0,26,34,0.16); border-color: rgba(0,26,34,0.12); }
+    .msg-code--block {
+      display: block;
+      padding: 8px 10px;
+      margin: 3px 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      border-radius: 8px;
+    }
+
+    /* Format toolbar — appears above the input when text is selected */
+    .format-bar {
+      flex: 0 0 auto;
+      display: none;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 12px;
+      background: var(--input-bar-bg);
+      border-top: 1px solid var(--border);
+    }
+    .format-bar--visible { display: flex; }
+    .format-bar__label { font-size: 11px; color: var(--text-muted); margin-right: 4px; }
+    .format-bar__btn {
+      min-width: 34px; height: 30px;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 14px;
+      display: grid; place-items: center;
+      padding: 0 8px;
+    }
+    .format-bar__btn:active { background: var(--surface-2); }
+    .format-bar__btn--bold { font-weight: 800; }
+    .format-bar__btn--italic { font-style: italic; font-family: Georgia, serif; }
+    .format-bar__btn--strike { text-decoration: line-through; }
+    .format-bar__btn--mono { font-family: Consolas, monospace; font-size: 12px; }
+
     /* ============ Attach popup menu (+ button) ============ */
     .attach-menu-host { position: relative; display: flex; }
     .attach-menu {
@@ -1922,7 +1973,7 @@
       </div>
 
       <div class="hdr__title-block" id="hdrTitleBlock">
-        <span class="hdr__name">IBI Messenger <span class="hdr__version" id="appVersion">v4.4</span></span>
+        <span class="hdr__name">IBI Messenger <span class="hdr__version" id="appVersion">v4.5</span></span>
         <span class="hdr__sub">
           <span class="hdr__dot" id="hdrDot"></span>
           <span id="hdrStatus">You: <strong id="hdrSenderName">—</strong></span>
@@ -2066,6 +2117,15 @@
       <button type="button" class="edit-bar__cancel" id="editBarCancel" aria-label="Cancel editing">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
       </button>
+    </div>
+
+    <!-- Format toolbar — appears when text is selected in the message box -->
+    <div class="format-bar" id="formatBar">
+      <span class="format-bar__label">Format:</span>
+      <button type="button" class="format-bar__btn format-bar__btn--bold" data-fmt="*" title="Bold">B</button>
+      <button type="button" class="format-bar__btn format-bar__btn--italic" data-fmt="_" title="Italic">I</button>
+      <button type="button" class="format-bar__btn format-bar__btn--strike" data-fmt="~" title="Strikethrough">S</button>
+      <button type="button" class="format-bar__btn format-bar__btn--mono" data-fmt="`" title="Monospace">&lt;/&gt;</button>
     </div>
 
     <div class="input-bar">
@@ -2894,6 +2954,50 @@
     // =========================================================
     const URL_RE = /https?:\/\/[^\s<>"']+|www\.[a-zA-Z0-9][^\s<>"']*/g;
 
+    // =========================================================
+    // Rich text formatting (WhatsApp-style) + URL auto-linking
+    //   *bold*  _italic_  ~strike~  `mono`  ```code block```
+    // URLs and code spans are protected before inline formatting is applied,
+    // so markers inside them stay literal.
+    // =========================================================
+    function formatMessageText(rawText) {
+      if (!rawText) return '';
+      const store = [];
+      const stash = (htmlFrag) => { store.push(htmlFrag); return '\u0000' + (store.length - 1) + '\u0000'; };
+
+      let t = rawText;
+      // Protect code blocks and inline code first (raw content)
+      t = t.replace(/```([\s\S]+?)```/g, (mm, p1) => stash('<code class="msg-code msg-code--block">' + escapeHtml(p1.replace(/^\n|\n$/g, '')) + '</code>'));
+      t = t.replace(/`([^`\n]+?)`/g, (mm, p1) => stash('<code class="msg-code">' + escapeHtml(p1) + '</code>'));
+
+      // Protect URLs
+      const re = new RegExp(URL_RE.source, URL_RE.flags);
+      let out = '', last = 0, m;
+      while ((m = re.exec(t)) !== null) {
+        if (m[0].indexOf('\u0000') !== -1) continue;
+        let url = m[0].replace(/[.,;:!?)\]}>'"]+$/, '');
+        if (!url) continue;
+        out += t.slice(last, m.index);
+        const href = /^https?:\/\//i.test(url) ? url : 'https://' + url;
+        out += stash('<a href="' + escapeHtml(href) + '" class="msg-link" target="_blank" rel="noopener noreferrer">' + escapeHtml(url) + '</a>');
+        last = m.index + url.length;
+      }
+      out += t.slice(last);
+      t = out;
+
+      // Escape the remaining skeleton (placeholders use \u0000 + digits, which survive escaping)
+      t = escapeHtml(t);
+
+      // Inline formatting — markers must hug non-space text
+      t = t.replace(/\*(\S(?:[^*\n]*\S)?)\*/g, '<strong>$1</strong>');
+      t = t.replace(/_(\S(?:[^_\n]*\S)?)_/g, '<em>$1</em>');
+      t = t.replace(/~(\S(?:[^~\n]*\S)?)~/g, '<s>$1</s>');
+
+      // Restore protected fragments
+      t = t.replace(/\u0000(\d+)\u0000/g, (mm, i) => store[+i] || '');
+      return t;
+    }
+
     function linkifyText(rawText) {
       if (!rawText) return '';
       let out = '';
@@ -3128,7 +3232,7 @@
         }
       }
 
-      html += '<p class="msg__text">' + (msg.text ? (searchActive && searchTerm ? highlightSearchInText(msg.text) : linkifyText(msg.text)) : '') + '</p>';
+      html += '<p class="msg__text">' + (msg.text ? (searchActive && searchTerm ? highlightSearchInText(msg.text) : formatMessageText(msg.text)) : '') + '</p>';
 
       // Mark this bubble as the currently-focused search result
       if (searchActive && currentMatchIndex >= 0 &&
@@ -5060,6 +5164,40 @@
     messageInput.addEventListener('input', () => { autoGrow(); updateSendButton(); });
     messageInput.addEventListener('keydown', (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); sendMessage(); }
+    });
+
+    // =========================================================
+    // Format toolbar — show when text is selected; wrap selection on tap
+    // =========================================================
+    const formatBar = $('formatBar');
+    function refreshFormatBar() {
+      const hasSelection = messageInput.selectionStart !== messageInput.selectionEnd && document.activeElement === messageInput;
+      formatBar.classList.toggle('format-bar--visible', !!hasSelection);
+    }
+    ['select', 'keyup', 'mouseup', 'touchend', 'click'].forEach(ev =>
+      messageInput.addEventListener(ev, () => setTimeout(refreshFormatBar, 0)));
+    messageInput.addEventListener('blur', () => setTimeout(() => {
+      // Keep the bar if focus moved to a format button (handled via pointerdown preventDefault)
+      if (document.activeElement !== messageInput) formatBar.classList.remove('format-bar--visible');
+    }, 120));
+
+    function wrapSelection(marker) {
+      const start = messageInput.selectionStart, end = messageInput.selectionEnd;
+      if (start === end) return;
+      const val = messageInput.value;
+      const sel = val.slice(start, end);
+      messageInput.value = val.slice(0, start) + marker + sel + marker + val.slice(end);
+      messageInput.focus();
+      messageInput.setSelectionRange(start + marker.length, end + marker.length);
+      autoGrow(); updateSendButton();
+      refreshFormatBar();
+    }
+    formatBar.querySelectorAll('.format-bar__btn').forEach(btn => {
+      // pointerdown + preventDefault keeps the textarea selection intact
+      btn.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        wrapSelection(btn.dataset.fmt);
+      });
     });
 
     // =========================================================
