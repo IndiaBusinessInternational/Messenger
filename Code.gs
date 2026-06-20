@@ -71,7 +71,8 @@ const SHEET_HEADERS = [
   'editedAt',    // ISO timestamp when message was last edited (empty if never edited)
   'replyTo',     // JSON string of quoted message: {messageId, sender, text, hasImage}
   'reactions',   // JSON string: { "👍": ["senderId1","senderId2"], "❤️": ["senderId3"] }
-  'pinnedAt'     // ISO timestamp when message was pinned (empty if not pinned)
+  'pinnedAt',    // ISO timestamp when message was pinned (empty if not pinned)
+  'attachment'   // JSON string for non-image files: {kind,fileId,name,mime,size,duration}
 ];
 
 /* =====================================================================
@@ -126,10 +127,11 @@ function _handleSend(payload) {
   const userAgent = _str(payload.userAgent, 500);
   const phone     = _normalizePhone(_str(payload.phone, 30));
   const image     = payload.image || null;
+  const fileAttach = payload.attachment || null; // {kind,base64,mime,name,size,duration}
 
   if (!messageId) return _json({ ok: false, error: 'Missing messageId.' });
   if (!sender)    return _json({ ok: false, error: 'Missing sender name.' });
-  if (!text && !image) return _json({ ok: false, error: 'Empty message (no text and no image).' });
+  if (!text && !image && !fileAttach) return _json({ ok: false, error: 'Empty message.' });
 
   // --- Upload image if present ---
   let imageId = '', imageName = '', imageW = '', imageH = '';
@@ -145,11 +147,30 @@ function _handleSend(payload) {
     }
   }
 
+  // --- Upload generic file (document / audio / video) if present ---
+  let attachmentJson = '';
+  if (fileAttach && fileAttach.base64) {
+    try {
+      const up = _uploadFileToDrive(fileAttach, sender);
+      attachmentJson = JSON.stringify({
+        kind: _str(fileAttach.kind, 20) || 'document',
+        fileId: up.fileId,
+        name: (fileAttach.name || 'file').toString().substring(0, 200),
+        mime: (fileAttach.mime || 'application/octet-stream').toString().substring(0, 100),
+        size: fileAttach.size || 0,
+        duration: fileAttach.duration || 0
+      });
+    } catch (fErr) {
+      return _json({ ok: false, error: 'File upload failed: ' + fErr.message });
+    }
+  }
+
   // --- Append row ---
   const sheet = _getSheet();
   const timestampDate = new Date();          // Date object — Sheet displays it via column format
   const timestamp = timestampDate.toISOString(); // ISO string for the API response
-  const type = imageId ? (text ? 'image+text' : 'image') : 'text';
+  let type = imageId ? (text ? 'image+text' : 'image') : 'text';
+  if (attachmentJson) type = text ? 'file+text' : 'file';
 
   const replyToRaw = _str(payload.replyTo, 2000).trim();
 
@@ -157,7 +178,7 @@ function _handleSend(payload) {
     messageId, timestampDate, sender, senderId,
     type, text,
     imageId, imageName, imageW, imageH,
-    userAgent, phone, '', '', replyToRaw, '', ''
+    userAgent, phone, '', '', replyToRaw, '', '', attachmentJson
   ]);
   SpreadsheetApp.flush();
 
@@ -166,6 +187,7 @@ function _handleSend(payload) {
     messageId: messageId,
     timestamp: timestamp,
     imageId: imageId,
+    attachment: attachmentJson,
     sender: sender,
     phone: phone
   });
@@ -621,6 +643,7 @@ function _rowToMessage(row) {
   else m.editedAt = m.editedAt ? String(m.editedAt) : '';
   m.replyTo = String(m.replyTo || '');
   m.reactions = String(m.reactions || '');
+  m.attachment = String(m.attachment || '');
   if (m.pinnedAt instanceof Date) m.pinnedAt = m.pinnedAt.toISOString();
   else m.pinnedAt = m.pinnedAt ? String(m.pinnedAt) : '';
   return m;
@@ -735,6 +758,25 @@ function _uploadImageToDrive(image, sender) {
     // If domain policy blocks ANYONE_WITH_LINK, the image will still be there
     // but won't render on receivers' devices. Owner can adjust manually.
   }
+  return { fileId: file.getId() };
+}
+
+// Upload any file type (document, audio, video) to Drive, public-view.
+function _uploadFileToDrive(att, sender) {
+  const folder = _getOrCreateFolder();
+  const mime = att.mime || 'application/octet-stream';
+  const bytes = Utilities.base64Decode(att.base64);
+  const stamp = Utilities.formatDate(new Date(), CONFIG.TIMEZONE, 'yyyyMMdd_HHmmss');
+  const safeSender = (sender || 'unknown').replace(/[^a-zA-Z0-9_-]+/g, '_').substring(0, 30);
+  const rawName = (att.name || 'file').toString();
+  // Preserve the original extension
+  const safeName = rawName.replace(/[^a-zA-Z0-9._-]+/g, '_').substring(0, 90);
+  const filename = stamp + '_' + safeSender + '_' + safeName;
+  const blob = Utilities.newBlob(bytes, mime, filename);
+  const file = folder.createFile(blob);
+  try {
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  } catch (e) { /* domain policy may block; owner can adjust */ }
   return { fileId: file.getId() };
 }
 

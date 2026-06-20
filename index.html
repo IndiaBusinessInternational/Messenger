@@ -766,6 +766,89 @@
     }
     .msginfo__close button:hover { background: var(--border); }
 
+    /* ============ File / document attachment bubble ============ */
+    .msg__file {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      margin-bottom: 4px;
+      cursor: pointer;
+      min-width: 180px;
+      max-width: 260px;
+      transition: background 0.15s;
+    }
+    .msg--sent .msg__file { background: rgba(0, 26, 34, 0.14); }
+    .msg--recv .msg__file { background: var(--surface-2); }
+    .msg__file:hover { filter: brightness(0.97); }
+    .msg__file-icon {
+      flex-shrink: 0;
+      width: 40px; height: 40px;
+      border-radius: 8px;
+      display: grid; place-items: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .msg__file-icon svg { width: 20px; height: 20px; }
+    .msg__file-body { flex: 1; min-width: 0; }
+    .msg__file-name {
+      display: block;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .msg__file-meta {
+      display: block;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+    .msg__file-dl {
+      flex-shrink: 0;
+      color: var(--ibi-cyan);
+      display: grid; place-items: center;
+    }
+    .msg__file-dl svg { width: 20px; height: 20px; }
+
+    /* Pending file preview chip in the input area */
+    .attach-file-preview {
+      flex: 0 0 auto;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 14px;
+      background: var(--input-bar-bg);
+      border-top: 2px solid var(--ibi-cyan);
+    }
+    .attach-file-preview--visible { display: flex; }
+    .attach-file-preview__icon {
+      flex-shrink: 0;
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      display: grid; place-items: center;
+      color: #fff; font-size: 10px; font-weight: 700;
+    }
+    .attach-file-preview__body { flex: 1; min-width: 0; }
+    .attach-file-preview__name {
+      display: block; font-size: 13px; font-weight: 500; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .attach-file-preview__meta { display: block; font-size: 11px; color: var(--text-muted); }
+    .attach-file-preview__cancel {
+      flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%;
+      background: transparent; border: 0; color: var(--text-muted);
+      display: grid; place-items: center; cursor: pointer; padding: 0;
+    }
+    .attach-file-preview__cancel:hover { background: var(--surface-2); color: var(--text); }
+    .attach-file-preview__cancel svg { width: 14px; height: 14px; }
+
     /* ============ Reactions ============ */
     .msg__reactions { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
     .reaction-chip {
@@ -1509,7 +1592,7 @@
       </div>
 
       <div class="hdr__title-block" id="hdrTitleBlock">
-        <span class="hdr__name">IBI Messenger <span class="hdr__version" id="appVersion">v4.0</span></span>
+        <span class="hdr__name">IBI Messenger <span class="hdr__version" id="appVersion">v4.1</span></span>
         <span class="hdr__sub">
           <span class="hdr__dot" id="hdrDot"></span>
           <span id="hdrStatus">You: <strong id="hdrSenderName">—</strong></span>
@@ -1613,6 +1696,18 @@
       <div class="attach-strip" id="attachStrip"></div>
     </div>
 
+    <!-- Pending document/file preview -->
+    <div class="attach-file-preview" id="attachFilePreview">
+      <div class="attach-file-preview__icon" id="attachFileIcon">FILE</div>
+      <div class="attach-file-preview__body">
+        <span class="attach-file-preview__name" id="attachFileName">document.pdf</span>
+        <span class="attach-file-preview__meta" id="attachFileMeta">— KB</span>
+      </div>
+      <button type="button" class="attach-file-preview__cancel" id="attachFileCancel" aria-label="Remove file">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+
     <!-- Reply bar — shown when replying to a message -->
     <div class="reply-bar" id="replyBar" style="display:none;">
       <div class="reply-bar__accent" aria-hidden="true"></div>
@@ -1653,6 +1748,11 @@
           <circle cx="12" cy="13" r="4"/>
         </svg>
       </button>
+      <button type="button" class="input-bar__attach" id="docBtn" aria-label="Attach a document" title="Attach file">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+        </svg>
+      </button>
       <div class="input-bar__textwrap">
         <textarea id="messageInput" class="input-bar__textarea" placeholder="Type a message…" rows="1" aria-label="Message" spellcheck="true"></textarea>
       </div>
@@ -1663,6 +1763,7 @@
       </button>
       <input type="file" id="fileInput" accept="image/*" multiple hidden />
       <input type="file" id="cameraInput" accept="image/*" capture="environment" hidden />
+      <input type="file" id="docInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt,.zip,.rar,.json,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,video/*,audio/*" hidden />
     </div>
   </div>
 
@@ -1941,6 +2042,14 @@
     const fileInput  = $('fileInput');
     const cameraBtn  = $('cameraBtn');
     const cameraInput = $('cameraInput');
+    const docBtn      = $('docBtn');
+    const docInput    = $('docInput');
+    const attachFilePreview = $('attachFilePreview');
+    const attachFileIcon = $('attachFileIcon');
+    const attachFileName = $('attachFileName');
+    const attachFileMeta = $('attachFileMeta');
+    const attachFileCancel = $('attachFileCancel');
+    let pendingFile = null; // { kind, base64, mime, name, size }
     const attachPreview = $('attachPreview');
     const attachCount   = $('attachCount');
     const attachStrip   = $('attachStrip');
@@ -2530,6 +2639,26 @@
       } else if (msg.imageDropped) {
         html += '<div style="opacity:.7;font-size:13px;font-style:italic;padding:6px 0;">[Image — dropped from local cache]</div>';
       }
+
+      // File / document / video / audio attachment
+      if (msg.attachment && (msg.attachment.fileId || msg.attachment._local)) {
+        const att = msg.attachment;
+        const ext = fileExtLabel(att.name, att.mime || '');
+        const color = fileIconColor(ext);
+        const sizeStr = humanSize(att.size);
+        const kindLabel = att.kind === 'video' ? 'Video' : (att.kind === 'audio' ? 'Audio' : 'Document');
+        const metaStr = [sizeStr, att.kind !== 'document' ? kindLabel : ext].filter(Boolean).join(' · ');
+        const pending = att._local && !att.fileId;
+        const dlSvg = pending
+          ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" opacity="0.4"/><path d="M12 6v6l4 2"/></svg>'
+          : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><path d="M12 15V3"/></svg>';
+        html += '<div class="msg__file" data-file-id="' + escapeHtml(att.fileId || '') + '">'
+              + '<div class="msg__file-icon" style="background:' + color + ';">' + escapeHtml(ext) + '</div>'
+              + '<div class="msg__file-body"><span class="msg__file-name">' + escapeHtml(att.name || 'file') + '</span>'
+              + '<span class="msg__file-meta">' + escapeHtml(pending ? 'Uploading…' : metaStr) + '</span></div>'
+              + '<span class="msg__file-dl">' + dlSvg + '</span></div>';
+      }
+
       html += '<p class="msg__text">' + (msg.text ? (searchActive && searchTerm ? highlightSearchInText(msg.text) : linkifyText(msg.text)) : '') + '</p>';
 
       // Mark this bubble as the currently-focused search result
@@ -2592,6 +2721,15 @@
             ? msg.imageDataUrl
             : (msg.imageId ? ('https://lh3.googleusercontent.com/d/' + encodeURIComponent(msg.imageId) + '=w2000') : '');
           if (fullSrc) openLightbox(fullSrc);
+        });
+      }
+      // File/document bubble: tap to open in Drive
+      const fileEl = el.querySelector('.msg__file');
+      if (fileEl) {
+        fileEl.addEventListener('click', () => {
+          const fid = fileEl.dataset.fileId;
+          if (!fid) { showToast('Still uploading…', 'info', 1500); return; }
+          window.open('https://drive.google.com/file/d/' + encodeURIComponent(fid) + '/view', '_blank', 'noopener');
         });
       }
       // Quote block: tap → scroll to the original replied-to message
@@ -3580,12 +3718,103 @@
     // =========================================================
     attachBtn.addEventListener('click', () => fileInput.click());
     cameraBtn.addEventListener('click', () => cameraInput.click());
+    docBtn.addEventListener('click', () => docInput.click());
+
+    // =========================================================
+    // Document / file attachment (PDF, Excel, Word, video, audio, etc.)
+    // =========================================================
+    const MAX_FILE_MB = 20;
+    function fileKindFromMime(mime, name) {
+      if (mime.indexOf('video/') === 0) return 'video';
+      if (mime.indexOf('audio/') === 0) return 'audio';
+      return 'document';
+    }
+    function fileExtLabel(name, mime) {
+      const m = (name || '').match(/\.([a-zA-Z0-9]{1,5})$/);
+      if (m) return m[1].toUpperCase();
+      if (mime.indexOf('pdf') !== -1) return 'PDF';
+      if (mime.indexOf('video') !== -1) return 'VID';
+      if (mime.indexOf('audio') !== -1) return 'AUD';
+      return 'FILE';
+    }
+    function fileIconColor(ext) {
+      const e = (ext || '').toLowerCase();
+      if (['pdf'].includes(e)) return '#e23b3b';
+      if (['xls','xlsx','csv'].includes(e)) return '#1d8a4c';
+      if (['doc','docx'].includes(e)) return '#2b6fd6';
+      if (['ppt','pptx'].includes(e)) return '#d35400';
+      if (['zip','rar','7z'].includes(e)) return '#7b5ea7';
+      if (['mp4','mov','avi','webm','mkv'].includes(e)) return '#444';
+      if (['mp3','wav','ogg','m4a'].includes(e)) return '#0a8a8a';
+      return '#5a6470';
+    }
+    function humanSize(bytes) {
+      if (!bytes) return '';
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    docInput.addEventListener('change', async (e) => {
+      const file = e.target.files && e.target.files[0];
+      docInput.value = '';
+      if (!file) return;
+      if (file.size > MAX_FILE_MB * 1024 * 1024) {
+        showToast('File too large (max ' + MAX_FILE_MB + ' MB). Share via a link instead.', 'error', 5000);
+        return;
+      }
+      try {
+        const base64 = await fileToBase64(file);
+        pendingFile = {
+          kind: fileKindFromMime(file.type || '', file.name),
+          base64: base64,
+          mime: file.type || 'application/octet-stream',
+          name: file.name || 'file',
+          size: file.size || 0
+        };
+        // Clear any pending images (one attachment mode at a time)
+        if (pendingImages.length) clearAttachment();
+        renderFilePreview();
+        updateSendButton();
+        messageInput.focus();
+      } catch (err) {
+        console.error('File read failed:', err);
+        showToast('Could not read that file.', 'error', 4000);
+      }
+    });
+
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onerror = () => reject(new Error('read failed'));
+        r.onload = () => resolve(String(r.result).split(',')[1]);
+        r.readAsDataURL(file);
+      });
+    }
+
+    function renderFilePreview() {
+      if (!pendingFile) { attachFilePreview.classList.remove('attach-file-preview--visible'); return; }
+      const ext = fileExtLabel(pendingFile.name, pendingFile.mime);
+      attachFileIcon.textContent = ext;
+      attachFileIcon.style.background = fileIconColor(ext);
+      attachFileName.textContent = pendingFile.name;
+      attachFileMeta.textContent = humanSize(pendingFile.size) + (pendingFile.kind !== 'document' ? ' · ' + pendingFile.kind : '');
+      attachFilePreview.classList.add('attach-file-preview--visible');
+    }
+
+    function clearFileAttachment() {
+      pendingFile = null;
+      attachFilePreview.classList.remove('attach-file-preview--visible');
+      updateSendButton();
+    }
+    attachFileCancel.addEventListener('click', clearFileAttachment);
 
     // Gallery — multiple files
     fileInput.addEventListener('change', async (e) => {
       const files = Array.from(e.target.files || []);
       fileInput.value = '';
       if (!files.length) return;
+      if (pendingFile) clearFileAttachment(); // one mode at a time
       await addPendingImages(files);
     });
 
@@ -3750,7 +3979,7 @@
       messageInput.style.height = Math.min(messageInput.scrollHeight, 140) + 'px';
     }
     function updateSendButton() {
-      const hasContent = messageInput.value.trim().length > 0 || pendingImages.length > 0;
+      const hasContent = messageInput.value.trim().length > 0 || pendingImages.length > 0 || !!pendingFile;
       sendBtn.disabled = !hasContent || !identity;
     }
     messageInput.addEventListener('input', () => { autoGrow(); updateSendButton(); });
@@ -3766,7 +3995,7 @@
     async function sendMessage() {
       if (!identity) { showIdentityModal(false); return; }
       const text = messageInput.value.trim();
-      if (!text && pendingImages.length === 0) return;
+      if (!text && pendingImages.length === 0 && !pendingFile) return;
       if (!GAS_WEB_APP_URL || GAS_WEB_APP_URL.indexOf('PASTE_YOUR_DEPLOYED') !== -1) {
         showToast('Backend URL not configured.', 'error');
         return;
@@ -3777,6 +4006,17 @@
         const origId = editingMessageId;
         cancelEditMode();
         await submitEdit(origId, text);
+        return;
+      }
+
+      // ---- FILE / DOCUMENT SEND ----
+      if (pendingFile) {
+        const file = pendingFile;
+        const caption = text;
+        const sentReplyTo = replyingTo ? Object.assign({}, replyingTo) : null;
+        messageInput.value = ''; autoGrow();
+        clearFileAttachment(); cancelReplyMode();
+        await _sendFileMessage(file, caption, sentReplyTo);
         return;
       }
 
@@ -3846,6 +4086,37 @@
     }
 
     // ── Send a text-only message ─────────────────────────────────────────────
+    // ── Send a file/document message ─────────────────────────────────────────
+    async function _sendFileMessage(file, text, replyTo) {
+      const messageId = 'msg_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10);
+      const ts = new Date().toISOString();
+      const localMsg = {
+        messageId, timestamp: ts,
+        sender: identity.sender, senderId: identity.senderId,
+        phone: identity.phone || '',
+        type: text ? 'file+text' : 'file',
+        text: text || '',
+        imageId: '', imageW: '', imageH: '',
+        attachment: { kind: file.kind, fileId: '', name: file.name, mime: file.mime, size: file.size, _local: true },
+        replyTo: replyTo || null,
+        status: 'sending'
+      };
+      history.push(localMsg); saveHistory(); renderChat(true);
+      setSending(true);
+
+      const payload = {
+        messageId,
+        sender: identity.sender, senderId: identity.senderId,
+        phone: identity.phone || '', text: text || '',
+        clientTimestamp: ts,
+        userAgent: navigator.userAgent.substring(0, 200),
+        replyTo: replyTo ? JSON.stringify(replyTo) : '',
+        attachment: { kind: file.kind, base64: file.base64, mime: file.mime, name: file.name, size: file.size }
+      };
+      await _postToGAS(messageId, JSON.stringify(payload));
+      setSending(false);
+    }
+
     async function _sendTextMessage(text) {
       const messageId = 'msg_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10);
       const ts = new Date().toISOString();
@@ -3897,6 +4168,9 @@
         const m = history.find(x => x.messageId === messageId);
         if (m) {
           if (data && data.imageId) { m.imageId = data.imageId; m.imageDataUrl = null; }
+          if (data && data.attachment) {
+            try { const a = JSON.parse(data.attachment); if (a && a.fileId) m.attachment = a; } catch(_) {}
+          }
           if (data && data.timestamp) m.timestamp = data.timestamp;
           m.status = 'sent';
           saveHistory();
@@ -4359,6 +4633,9 @@
             })(),
             reactions: (function() {
               try { return srv.reactions ? JSON.parse(srv.reactions) : {}; } catch(_) { return {}; }
+            })(),
+            attachment: (function() {
+              try { return srv.attachment ? JSON.parse(srv.attachment) : null; } catch(_) { return null; }
             })(),
             pinnedAt: srv.pinnedAt || '',
             status: 'sent'
