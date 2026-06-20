@@ -766,6 +766,62 @@
     }
     .msginfo__close button:hover { background: var(--border); }
 
+    /* ============ Reactions ============ */
+    .msg__reactions { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+    .reaction-chip {
+      display: inline-flex; align-items: center; gap: 3px;
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: 11px; padding: 1px 7px 1px 5px;
+      font-size: 12px; line-height: 1.6; cursor: pointer; user-select: none;
+      transition: transform 0.1s;
+    }
+    .reaction-chip:active { transform: scale(0.92); }
+    .reaction-chip--mine { background: rgba(0, 197, 255, 0.16); border-color: rgba(0, 197, 255, 0.5); }
+    .reaction-chip__emoji { font-size: 13px; }
+    .reaction-chip__count { font-size: 11px; color: var(--text-muted); font-weight: 600; }
+    .reaction-chip--mine .reaction-chip__count { color: var(--ibi-cyan); }
+
+    /* Quick-react row at the top of the action sheet */
+    .quick-react {
+      display: flex; justify-content: space-around; align-items: center;
+      padding: 4px 6px 8px; border-bottom: 1px solid var(--border); margin-bottom: 4px;
+    }
+    .quick-react__btn {
+      font-size: 26px; background: transparent; border: 0; cursor: pointer;
+      padding: 4px 6px; border-radius: 50%; line-height: 1;
+      transition: transform 0.12s ease, background 0.12s;
+    }
+    .quick-react__btn:hover { transform: scale(1.25); background: var(--surface-2); }
+    .quick-react__btn--active { background: rgba(0, 197, 255, 0.18); }
+
+    /* ============ Pinned banner ============ */
+    .pin-banner {
+      flex: 0 0 auto; display: none; align-items: center; gap: 10px;
+      padding: 8px 14px; background: var(--input-bar-bg);
+      border-bottom: 1px solid var(--border); cursor: pointer;
+    }
+    .pin-banner--visible { display: flex; }
+    .pin-banner__icon { flex-shrink: 0; color: var(--ibi-cyan); display: grid; place-items: center; }
+    .pin-banner__icon svg { width: 16px; height: 16px; }
+    .pin-banner__body { flex: 1; min-width: 0; }
+    .pin-banner__label {
+      display: block; font-size: 11px; font-weight: 700; color: var(--ibi-cyan);
+      letter-spacing: 0.4px; text-transform: uppercase;
+    }
+    .pin-banner__text {
+      display: block; font-size: 13px; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .pin-banner__close {
+      flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%;
+      background: transparent; border: 0; color: var(--text-muted);
+      display: grid; place-items: center; cursor: pointer; padding: 0;
+    }
+    .pin-banner__close:hover { background: var(--surface-2); color: var(--text); }
+    .pin-banner__close svg { width: 14px; height: 14px; }
+    .msg__pin-mark { font-size: 10px; color: var(--ibi-cyan); margin-right: 4px; }
+    .msg__star-mark { font-size: 11px; margin-right: 4px; }
+
     /* ============ Crop editor (full-screen image cropper) ============ */
     .crop-editor {
       position: fixed; inset: 0;
@@ -1453,7 +1509,7 @@
       </div>
 
       <div class="hdr__title-block" id="hdrTitleBlock">
-        <span class="hdr__name">IBI Messenger <span class="hdr__version" id="appVersion">v3.5</span></span>
+        <span class="hdr__name">IBI Messenger <span class="hdr__version" id="appVersion">v4.0</span></span>
         <span class="hdr__sub">
           <span class="hdr__dot" id="hdrDot"></span>
           <span id="hdrStatus">You: <strong id="hdrSenderName">—</strong></span>
@@ -1486,6 +1542,10 @@
             <button type="button" class="menu__item" id="openSheetBtn" role="menuitem">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
               Open Google Sheet
+            </button>
+            <button type="button" class="menu__item" id="starredBtn" role="menuitem">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              Starred messages
             </button>
             <button type="button" class="menu__item" id="refreshBtn" role="menuitem">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg>
@@ -1526,6 +1586,20 @@
         <button type="button" class="install-banner__btn install-banner__btn--primary" id="installBtn">Install</button>
         <button type="button" class="install-banner__btn install-banner__btn--dismiss" id="installDismiss">Not now</button>
       </div>
+    </div>
+
+    <!-- Pinned message banner -->
+    <div class="pin-banner" id="pinBanner">
+      <div class="pin-banner__icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>
+      </div>
+      <div class="pin-banner__body">
+        <span class="pin-banner__label">Pinned message</span>
+        <span class="pin-banner__text" id="pinBannerText"></span>
+      </div>
+      <button type="button" class="pin-banner__close" id="pinBannerClose" aria-label="Unpin message">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
     </div>
 
     <main class="chat" id="chat" role="log" aria-live="polite" aria-label="Chat history"></main>
@@ -1704,6 +1778,7 @@
   <div class="action-sheet-backdrop" id="actionBackdrop"></div>
   <div class="action-sheet" id="actionSheet" role="menu" aria-label="Message actions">
     <div class="action-sheet__handle" aria-hidden="true"></div>
+    <div class="quick-react" id="quickReact" aria-label="Quick reactions"></div>
     <div class="action-sheet__preview" id="actionPreview" hidden>
       <strong id="actionPreviewSender">Sender</strong>
       <span id="actionPreviewText"></span>
@@ -1711,6 +1786,14 @@
     <button type="button" class="action-sheet__item" id="actionReply" role="menuitem">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
       <span>Reply</span>
+    </button>
+    <button type="button" class="action-sheet__item" id="actionPin" role="menuitem">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>
+      <span id="actionPinLabel">Pin message</span>
+    </button>
+    <button type="button" class="action-sheet__item" id="actionStar" role="menuitem">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      <span id="actionStarLabel">Star message</span>
     </button>
     <button type="button" class="action-sheet__item" id="actionMsgInfo" role="menuitem" hidden>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
@@ -1733,6 +1816,20 @@
       <span>Delete message</span>
     </button>
     <button type="button" class="action-sheet__item action-sheet__item--cancel" id="actionCancel" role="menuitem">Cancel</button>
+  </div>
+
+  <!-- Starred messages view -->
+  <div class="action-sheet-backdrop" id="starredBackdrop"></div>
+  <div class="msginfo" id="starredPanel" role="dialog" aria-label="Starred messages" aria-modal="true">
+    <div class="msginfo__handle" aria-hidden="true"></div>
+    <div class="msginfo__header">
+      <div class="msginfo__icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      </div>
+      <h3 class="msginfo__title">Starred Messages</h3>
+    </div>
+    <div id="starredList"></div>
+    <div class="msginfo__close"><button type="button" id="starredClose">Close</button></div>
   </div>
 
   <div class="toast-host" id="toastHost" aria-live="polite" aria-atomic="true"></div>
@@ -2392,6 +2489,7 @@
         chatEl.appendChild(renderMessage(msg));
         lastSenderId = msg.senderId;
       });
+      renderPinBanner();
       if (stick) scrollChatToBottom();
     }
 
@@ -2458,8 +2556,34 @@
         }
       }
       const metaCls = msg.status === 'failed' ? 'msg__meta msg__meta--failed' : 'msg__meta';
-      html += '<span class="' + metaCls + '">' + editedBadge + time + ' ' + statusIcon + '</span>';
+      const pinMark = msg.pinnedAt ? '<span class="msg__pin-mark" title="Pinned">📌</span>' : '';
+      const starMark = isStarred(msg.messageId) ? '<span class="msg__star-mark" title="Starred">⭐</span>' : '';
+      html += '<span class="' + metaCls + '">' + starMark + pinMark + editedBadge + time + ' ' + statusIcon + '</span>';
+
+      // Reaction chips
+      const rx = msg.reactions && typeof msg.reactions === 'object' ? msg.reactions : {};
+      const rxEmojis = Object.keys(rx).filter(e => rx[e] && rx[e].length);
+      if (rxEmojis.length) {
+        let chips = '<div class="msg__reactions">';
+        rxEmojis.forEach(emoji => {
+          const ids = rx[emoji];
+          const mine = identity && ids.indexOf(identity.senderId) !== -1;
+          chips += '<span class="reaction-chip' + (mine ? ' reaction-chip--mine' : '') + '" data-emoji="' + escapeHtml(emoji) + '">'
+                 + '<span class="reaction-chip__emoji">' + emoji + '</span>'
+                 + '<span class="reaction-chip__count">' + ids.length + '</span></span>';
+        });
+        chips += '</div>';
+        html += chips;
+      }
       el.innerHTML = html;
+
+      // Wire reaction chip taps (toggle my reaction)
+      el.querySelectorAll('.reaction-chip').forEach(chip => {
+        chip.addEventListener('click', (e) => {
+          e.stopPropagation();
+          toggleReaction(msg.messageId, chip.dataset.emoji);
+        });
+      });
 
       const img = el.querySelector('img.msg__image');
       if (img) {
@@ -2596,6 +2720,10 @@
       }
       if (msginfoPanel.classList.contains('msginfo--open')) {
         closeMessageInfo(true);
+        return;
+      }
+      if (starredPanel.classList.contains('msginfo--open')) {
+        closeStarredPanel(true);
         return;
       }
       if (lightbox.classList.contains('lightbox--open')) {
@@ -2785,6 +2913,219 @@
     const replyBarText   = $('replyBarText');
     const replyBarCancel = $('replyBarCancel');
     const actionReply    = $('actionReply');
+    const actionPin      = $('actionPin');
+    const actionPinLabel = $('actionPinLabel');
+    const actionStar     = $('actionStar');
+    const actionStarLabel = $('actionStarLabel');
+    const quickReact     = $('quickReact');
+    const pinBanner      = $('pinBanner');
+    const pinBannerText  = $('pinBannerText');
+    const pinBannerClose = $('pinBannerClose');
+    const starredBtn     = $('starredBtn');
+    const starredBackdrop = $('starredBackdrop');
+    const starredPanel   = $('starredPanel');
+    const starredList    = $('starredList');
+    const starredClose   = $('starredClose');
+
+    // =========================================================
+    // Stars (local per-device bookmarks)
+    // =========================================================
+    const STARRED_KEY = 'ibi-msgr-starred-v1';
+    let starredIds = (function() {
+      try { return new Set(JSON.parse(localStorage.getItem(STARRED_KEY) || '[]')); }
+      catch(_) { return new Set(); }
+    })();
+    function saveStarred() {
+      try { localStorage.setItem(STARRED_KEY, JSON.stringify(Array.from(starredIds))); } catch(_) {}
+    }
+    function isStarred(id) { return starredIds.has(id); }
+    function toggleStar(id) {
+      if (starredIds.has(id)) { starredIds.delete(id); showToast('Removed star', 'info', 1500); }
+      else { starredIds.add(id); showToast('Message starred ⭐', 'success', 1500); }
+      saveStarred();
+      rerenderMessage(id);
+    }
+
+    // =========================================================
+    // Reactions
+    // =========================================================
+    const QUICK_EMOJIS = ['👍', '❤️', '😂', '😮', '🙏', '✅'];
+
+    function buildQuickReactRow(messageId, msg) {
+      quickReact.innerHTML = '';
+      const myRx = getMyReaction(msg);
+      QUICK_EMOJIS.forEach(emoji => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'quick-react__btn' + (myRx === emoji ? ' quick-react__btn--active' : '');
+        b.textContent = emoji;
+        b.addEventListener('click', () => {
+          closeActionSheet(false);
+          toggleReaction(messageId, emoji);
+        });
+        quickReact.appendChild(b);
+      });
+    }
+
+    function getMyReaction(msg) {
+      if (!msg || !msg.reactions || !identity) return null;
+      const rx = msg.reactions;
+      for (const emoji in rx) {
+        if (rx[emoji] && rx[emoji].indexOf(identity.senderId) !== -1) return emoji;
+      }
+      return null;
+    }
+
+    // Optimistically toggle a reaction locally, then sync to server
+    function toggleReaction(messageId, emoji) {
+      if (!identity) return;
+      const msg = history.find(m => m.messageId === messageId);
+      if (!msg) return;
+      if (!msg.reactions || typeof msg.reactions !== 'object') msg.reactions = {};
+      const rx = msg.reactions;
+      const mineHere = rx[emoji] && rx[emoji].indexOf(identity.senderId) !== -1;
+
+      // Remove my reaction from every emoji (one per person)
+      Object.keys(rx).forEach(k => {
+        rx[k] = rx[k].filter(v => v !== identity.senderId);
+        if (!rx[k].length) delete rx[k];
+      });
+      if (!mineHere) {
+        if (!rx[emoji]) rx[emoji] = [];
+        rx[emoji].push(identity.senderId);
+      }
+      saveHistory();
+      rerenderMessage(messageId);
+
+      const body = JSON.stringify({
+        action: 'react', messageId: messageId, emoji: emoji,
+        viewerId: identity.senderId, viewerName: identity.sender
+      });
+      _fireAndForget(body);
+    }
+
+    // =========================================================
+    // Pin
+    // =========================================================
+    function getPinnedMessage() {
+      // Most recently pinned, non-deleted message
+      let best = null;
+      history.forEach(m => {
+        if (m.pinnedAt && !m.deletedAt) {
+          if (!best || m.pinnedAt > best.pinnedAt) best = m;
+        }
+      });
+      return best;
+    }
+
+    function renderPinBanner() {
+      const pinned = getPinnedMessage();
+      if (!pinned) { pinBanner.classList.remove('pin-banner--visible'); return; }
+      const preview = pinned.text
+        ? (pinned.text.length > 70 ? pinned.text.slice(0, 70) + '…' : pinned.text)
+        : (pinned.imageId || pinned.imageDataUrl ? '📷 Photo' : '(message)');
+      pinBannerText.textContent = preview;
+      pinBanner.classList.add('pin-banner--visible');
+      pinBanner.dataset.pinnedId = pinned.messageId;
+    }
+
+    function togglePin(messageId, doPin) {
+      const msg = history.find(m => m.messageId === messageId);
+      if (!msg) return;
+      msg.pinnedAt = doPin ? new Date().toISOString() : '';
+      saveHistory();
+      renderPinBanner();
+      rerenderMessage(messageId);
+      showToast(doPin ? 'Message pinned 📌' : 'Message unpinned', 'success', 1800);
+      const body = JSON.stringify({ action: 'pin', messageId: messageId, pin: doPin, viewerId: identity ? identity.senderId : '' });
+      _fireAndForget(body);
+    }
+
+    // Shared fire-and-forget POST with timeout + no-cors fallback
+    function _fireAndForget(body) {
+      if (!GAS_WEB_APP_URL || GAS_WEB_APP_URL.indexOf('PASTE_YOUR_DEPLOYED') !== -1) return;
+      const controller = new AbortController();
+      const tid = setTimeout(() => controller.abort(), 20000);
+      fetch(GAS_WEB_APP_URL, {
+        method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body, redirect: 'follow', signal: controller.signal
+      }).then(res => { clearTimeout(tid); if (!res.ok) throw new Error(res.status); })
+        .catch(() => {
+          clearTimeout(tid);
+          fetch(GAS_WEB_APP_URL, { method: 'POST', mode: 'no-cors',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body }).catch(() => {});
+        });
+    }
+
+    // Pin banner: tap to jump to message, X to unpin
+    pinBanner.addEventListener('click', () => {
+      const id = pinBanner.dataset.pinnedId;
+      if (id) scrollToMessage(id);
+    });
+    pinBannerClose.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = pinBanner.dataset.pinnedId;
+      if (id) togglePin(id, false);
+    });
+
+    // Action sheet: Pin/Unpin
+    actionPin.addEventListener('click', () => {
+      const id = activeMessageId;
+      const msg = id ? history.find(m => m.messageId === id) : null;
+      closeActionSheet(false);
+      if (!msg) return;
+      togglePin(id, !msg.pinnedAt);
+    });
+
+    // Action sheet: Star/Unstar
+    actionStar.addEventListener('click', () => {
+      const id = activeMessageId;
+      closeActionSheet(false);
+      if (id) toggleStar(id);
+    });
+
+    // Starred messages panel
+    starredBtn.addEventListener('click', () => {
+      menu.classList.remove('menu--open');
+      openStarredPanel();
+    });
+    function openStarredPanel() {
+      const starred = history.filter(m => starredIds.has(m.messageId) && !m.deletedAt);
+      if (!starred.length) {
+        starredList.innerHTML = '<div class="msginfo__empty">No starred messages yet. Long-press a message and tap Star to save it here.</div>';
+      } else {
+        starred.sort((a, b) => (a.timestamp < b.timestamp ? 1 : -1)); // newest first
+        let html = '';
+        starred.forEach(m => {
+          const who = (m.sender || 'Unknown').split(',')[0].trim();
+          const when = formatStamp(new Date(m.timestamp));
+          const preview = m.text ? escapeHtml(m.text.slice(0, 120)) : (m.imageId || m.imageDataUrl ? '📷 Photo' : '(message)');
+          html += '<div class="msginfo__row" data-jump="' + escapeHtml(m.messageId) + '" style="cursor:pointer;align-items:flex-start;">'
+                + '<div class="msginfo__avatar">⭐</div>'
+                + '<div style="flex:1;min-width:0;"><div class="msginfo__name">' + escapeHtml(who) + '</div>'
+                + '<div style="font-size:13px;color:var(--text);margin:2px 0;word-break:break-word;">' + preview + '</div>'
+                + '<div class="msginfo__time">' + escapeHtml(when) + '</div></div></div>';
+        });
+        starredList.innerHTML = html;
+        starredList.querySelectorAll('[data-jump]').forEach(row => {
+          row.addEventListener('click', () => {
+            closeStarredPanel(false);
+            setTimeout(() => scrollToMessage(row.dataset.jump), 150);
+          });
+        });
+      }
+      starredBackdrop.classList.add('action-sheet-backdrop--open');
+      starredPanel.classList.add('msginfo--open');
+      pushOverlayState('starred');
+    }
+    function closeStarredPanel(fromBack) {
+      if (!starredPanel.classList.contains('msginfo--open')) return;
+      starredPanel.classList.remove('msginfo--open');
+      starredBackdrop.classList.remove('action-sheet-backdrop--open');
+      if (!fromBack && history.state && history.state.ibiOverlay === 'starred') window.history.back();
+    }
+    starredBackdrop.addEventListener('click', () => closeStarredPanel(false));
+    starredClose.addEventListener('click', () => closeStarredPanel(false));
 
     // Edit-mode state
     let editingMessageId = null;
@@ -2901,6 +3242,15 @@
 
       // Reply: available for any message that still has content (not deleted)
       actionReply.hidden = !!(msg.deletedAt);
+
+      // Quick reactions + Pin + Star: available for any non-deleted message
+      const notDeleted = !msg.deletedAt;
+      quickReact.style.display = notDeleted ? 'flex' : 'none';
+      if (notDeleted) buildQuickReactRow(messageId, msg);
+      actionPin.hidden = !notDeleted;
+      actionPinLabel.textContent = msg.pinnedAt ? 'Unpin message' : 'Pin message';
+      actionStar.hidden = !notDeleted;
+      actionStarLabel.textContent = isStarred(messageId) ? 'Remove star' : 'Star message';
 
       // Message Info: only for owner, only on their own sent messages
       const canViewInfo = isOwner() && isMine(msg);
@@ -3984,6 +4334,12 @@
               local.text = srv.text;
               local.editedAt = srv.editedAt;
             }
+            // Sync reactions + pin (these also bump editedAt on the server)
+            if (srv.editedAt && srv.editedAt !== local._reactSync) {
+              try { local.reactions = srv.reactions ? JSON.parse(srv.reactions) : {}; } catch(_) {}
+              local.pinnedAt = srv.pinnedAt || '';
+              local._reactSync = srv.editedAt;
+            }
             if (local.status !== 'failed') local.status = 'sent';
           }
         } else {
@@ -4001,6 +4357,10 @@
             replyTo: (function() {
               try { return srv.replyTo ? JSON.parse(srv.replyTo) : null; } catch(_) { return null; }
             })(),
+            reactions: (function() {
+              try { return srv.reactions ? JSON.parse(srv.reactions) : {}; } catch(_) { return {}; }
+            })(),
+            pinnedAt: srv.pinnedAt || '',
             status: 'sent'
           });
           added++;

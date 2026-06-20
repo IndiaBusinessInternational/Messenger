@@ -69,7 +69,9 @@ const SHEET_HEADERS = [
   'phone',       // sender's phone number (E.164, e.g. +919876543210) — for tap-to-call
   'deletedAt',   // ISO timestamp when message was deleted (empty if not deleted)
   'editedAt',    // ISO timestamp when message was last edited (empty if never edited)
-  'replyTo'      // JSON string of quoted message: {messageId, sender, text, hasImage}
+  'replyTo',     // JSON string of quoted message: {messageId, sender, text, hasImage}
+  'reactions',   // JSON string: { "👍": ["senderId1","senderId2"], "❤️": ["senderId3"] }
+  'pinnedAt'     // ISO timestamp when message was pinned (empty if not pinned)
 ];
 
 /* =====================================================================
@@ -89,6 +91,8 @@ function doPost(e) {
     if (action === 'edit')      return _handleEdit(payload);
     if (action === 'editimage') return _handleEditImage(payload);
     if (action === 'markseen')  return _handleMarkSeen(payload);
+    if (action === 'react')     return _handleReact(payload);
+    if (action === 'pin')       return _handlePin(payload);
     return _handleSend(payload);
   } catch (err) {
     return _json({ ok: false, error: (err && err.message) ? err.message : String(err) });
@@ -153,7 +157,7 @@ function _handleSend(payload) {
     messageId, timestampDate, sender, senderId,
     type, text,
     imageId, imageName, imageW, imageH,
-    userAgent, phone, '', '', replyToRaw
+    userAgent, phone, '', '', replyToRaw, '', ''
   ]);
   SpreadsheetApp.flush();
 
@@ -331,6 +335,86 @@ function _handleEditImage(payload) {
     imageH: image.height || '',
     editedAt: editedAtDate.toISOString()
   });
+}
+
+/* =====================================================================
+   REACT  —  toggles an emoji reaction on a message for one viewer.
+   reactions column stores JSON: { "👍": ["senderIdA"], "❤️": ["senderIdB"] }
+   Sets editedAt so the change propagates to other devices via polling.
+   ===================================================================== */
+function _handleReact(payload) {
+  if (!CONFIG.SHEET_ID || CONFIG.SHEET_ID.indexOf('PASTE') !== -1) {
+    return _json({ ok: false, error: 'Server not configured.' });
+  }
+  const messageId = _str(payload.messageId, 100);
+  const emoji     = _str(payload.emoji, 16);
+  const viewerId  = _str(payload.viewerId, 100);
+  if (!messageId || !emoji || !viewerId) return _json({ ok: false, error: 'Missing field.' });
+
+  const sheet = _getSheet();
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return _json({ ok: false, error: 'Message not found.' });
+  const ids = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+  let rowIdx = -1;
+  for (let i = 0; i < ids.length; i++) { if (String(ids[i][0]) === messageId) { rowIdx = i + 2; break; } }
+  if (rowIdx === -1) return _json({ ok: false, error: 'Message not found.' });
+
+  const colReactions = SHEET_HEADERS.indexOf('reactions') + 1;
+  const colEditedAt  = SHEET_HEADERS.indexOf('editedAt') + 1;
+  const raw = String(sheet.getRange(rowIdx, colReactions).getValue() || '');
+  let reactions = {};
+  if (raw) { try { reactions = JSON.parse(raw); } catch (_) { reactions = {}; } }
+
+  // Toggle this viewer's reaction with this emoji
+  const arr = reactions[emoji] || [];
+  const pos = arr.indexOf(viewerId);
+  if (pos === -1) {
+    // Remove this viewer from any OTHER emoji first (one reaction per person, WhatsApp-style)
+    Object.keys(reactions).forEach(function(k) {
+      reactions[k] = reactions[k].filter(function(v) { return v !== viewerId; });
+      if (!reactions[k].length) delete reactions[k];
+    });
+    if (!reactions[emoji]) reactions[emoji] = [];
+    reactions[emoji].push(viewerId);
+  } else {
+    arr.splice(pos, 1);
+    if (arr.length) reactions[emoji] = arr; else delete reactions[emoji];
+  }
+
+  const editedAtDate = new Date();
+  sheet.getRange(rowIdx, colReactions).setValue(JSON.stringify(reactions));
+  sheet.getRange(rowIdx, colEditedAt).setValue(editedAtDate);
+  SpreadsheetApp.flush();
+  return _json({ ok: true, messageId: messageId, reactions: reactions, editedAt: editedAtDate.toISOString() });
+}
+
+/* =====================================================================
+   PIN  —  sets or clears pinnedAt on a message.
+   payload.pin = true to pin, false to unpin.
+   ===================================================================== */
+function _handlePin(payload) {
+  if (!CONFIG.SHEET_ID || CONFIG.SHEET_ID.indexOf('PASTE') !== -1) {
+    return _json({ ok: false, error: 'Server not configured.' });
+  }
+  const messageId = _str(payload.messageId, 100);
+  const doPin = payload.pin === true || payload.pin === 'true';
+  if (!messageId) return _json({ ok: false, error: 'Missing messageId.' });
+
+  const sheet = _getSheet();
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return _json({ ok: false, error: 'Message not found.' });
+  const ids = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+  let rowIdx = -1;
+  for (let i = 0; i < ids.length; i++) { if (String(ids[i][0]) === messageId) { rowIdx = i + 2; break; } }
+  if (rowIdx === -1) return _json({ ok: false, error: 'Message not found.' });
+
+  const colPinnedAt = SHEET_HEADERS.indexOf('pinnedAt') + 1;
+  const colEditedAt = SHEET_HEADERS.indexOf('editedAt') + 1;
+  const pinnedAtDate = new Date();
+  sheet.getRange(rowIdx, colPinnedAt).setValue(doPin ? pinnedAtDate : '');
+  sheet.getRange(rowIdx, colEditedAt).setValue(pinnedAtDate); // bump so others refresh
+  SpreadsheetApp.flush();
+  return _json({ ok: true, messageId: messageId, pinnedAt: doPin ? pinnedAtDate.toISOString() : '', editedAt: pinnedAtDate.toISOString() });
 }
 
 /* =====================================================================
@@ -536,6 +620,9 @@ function _rowToMessage(row) {
   if (m.editedAt instanceof Date) m.editedAt = m.editedAt.toISOString();
   else m.editedAt = m.editedAt ? String(m.editedAt) : '';
   m.replyTo = String(m.replyTo || '');
+  m.reactions = String(m.reactions || '');
+  if (m.pinnedAt instanceof Date) m.pinnedAt = m.pinnedAt.toISOString();
+  else m.pinnedAt = m.pinnedAt ? String(m.pinnedAt) : '';
   return m;
 }
 
