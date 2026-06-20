@@ -220,6 +220,12 @@
     }
 
     /* ============ Wallpaper picker ============ */
+    .wp-picker { padding-bottom: 6px; }
+    .wp-group-title {
+      font-size: 12px; font-weight: 700; letter-spacing: 0.4px;
+      text-transform: uppercase; color: var(--text-muted);
+      padding: 10px 18px 2px;
+    }
     .wp-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -235,6 +241,11 @@
       overflow: hidden;
       background-size: cover; background-position: center;
       transition: transform 0.1s, border-color 0.15s;
+    }
+    .wp-swatch__img {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
     }
     .wp-swatch:active { transform: scale(0.95); }
     .wp-swatch--active { border-color: var(--ibi-cyan); box-shadow: 0 0 0 2px rgba(0,197,255,0.35); }
@@ -1973,7 +1984,7 @@
       </div>
 
       <div class="hdr__title-block" id="hdrTitleBlock">
-        <span class="hdr__name">IBI Messenger <span class="hdr__version" id="appVersion">v4.5</span></span>
+        <span class="hdr__name">IBI Messenger <span class="hdr__version" id="appVersion">v4.6</span></span>
         <span class="hdr__sub">
           <span class="hdr__dot" id="hdrDot"></span>
           <span id="hdrStatus">You: <strong id="hdrSenderName">—</strong></span>
@@ -2235,7 +2246,7 @@
       </div>
       <h3 class="msginfo__title">Chat Wallpaper</h3>
     </div>
-    <div class="wp-grid" id="wpGrid"></div>
+    <div class="wp-picker" id="wpGrid"></div>
     <div class="msginfo__close"><button type="button" id="wpClose">Close</button></div>
   </div>
   <input type="file" id="wpInput" accept="image/*" hidden />
@@ -2778,6 +2789,13 @@
       themeIcon.innerHTML = mode === 'dark' ? MOON_PATH : SUN_PATH;
       if (themeMeta) themeMeta.setAttribute('content', mode === 'dark' ? '#0a0d12' : '#000000');
       try { localStorage.setItem(THEME_KEY, mode); } catch(_) {}
+      // Wallpapers are theme-aware — recompute pattern/scene colours.
+      // Wrapped because applyTheme runs at startup before the wallpaper system
+      // (WP_PRESETS const) is initialised; the explicit applyWallpaper() runs later.
+      try {
+        applyWallpaper();
+        if (wpPanel && wpPanel.classList.contains('msginfo--open')) renderWpGrid();
+      } catch (_) { /* wallpaper system not ready yet at first paint */ }
     }
     function initTheme() {
       let saved = null;
@@ -3692,35 +3710,128 @@
     // =========================================================
     const WP_KEY = 'ibi-msgr-wallpaper-v1';
     const WP_CUSTOM_KEY = 'ibi-msgr-wallpaper-custom-v1';
+
+    // SVG pattern → data-URI background (CC is replaced with the theme colour)
+    function svgUrl(inner, w, h, color) {
+      const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '">' + inner.replace(/CC/g, color) + '</svg>';
+      return 'url("data:image/svg+xml,' + encodeURIComponent(svg) + '")';
+    }
+
+    // All wallpapers, grouped. Patterns are generated SVG (royalty-free, theme-aware);
+    // scenes are CSS gradients; photos are royalty-free images from Lorem Picsum.
     const WP_PRESETS = [
-      { id: 'default',  label: 'Default',  css: 'radial-gradient(rgba(0,0,0,0.06) 1.2px, transparent 1.2px)', bg: '#e8edf2', size: '14px 14px' },
-      { id: 'plain',    label: 'Plain',    bg: '#e8edf2' },
-      { id: 'cyan',     label: 'Cyan',     bg: '#dff4fd' },
-      { id: 'graphite', label: 'Graphite', bg: '#20293a' },
-      { id: 'sand',     label: 'Sand',     bg: '#efe7da' },
-      { id: 'mint',     label: 'Mint',     bg: '#e2f2e9' },
-      { id: 'blush',    label: 'Blush',    bg: '#f4e6ee' },
-      { id: 'doodle',   label: 'Dots',     css: 'radial-gradient(rgba(0,0,0,0.06) 1.2px, transparent 1.2px)', bg: '#e8edf2', size: '11px 11px' }
+      // ---- Solid colours ----
+      { id: 'plain',    group: 'solid', label: 'Plain',    light: '#e8edf2', dark: '#0e131a' },
+      { id: 'cyan',     group: 'solid', label: 'Cyan',     light: '#dff4fd', dark: '#0c2630' },
+      { id: 'graphite', group: 'solid', label: 'Graphite', light: '#20293a', dark: '#11161f' },
+      { id: 'sand',     group: 'solid', label: 'Sand',     light: '#efe7da', dark: '#2a2620' },
+      { id: 'mint',     group: 'solid', label: 'Mint',     light: '#e2f2e9', dark: '#16241c' },
+      { id: 'blush',    group: 'solid', label: 'Blush',    light: '#f4e6ee', dark: '#261821' },
+      { id: 'slate',    group: 'solid', label: 'Slate',    light: '#dde3ea', dark: '#161b24' },
+
+      // ---- Patterns (generated SVG) ----
+      { id: 'p-dots',     group: 'pattern', label: 'Dots',      svg: '<circle cx="10" cy="10" r="1.6" fill="CC"/>', w: 20, h: 20 },
+      { id: 'p-bigdots',  group: 'pattern', label: 'Big Dots',  svg: '<circle cx="16" cy="16" r="2.6" fill="CC"/>', w: 32, h: 32 },
+      { id: 'p-grid',     group: 'pattern', label: 'Grid',      svg: '<path d="M0 0H40M0 0V40" stroke="CC" stroke-width="1" fill="none"/>', w: 40, h: 40 },
+      { id: 'p-diag',     group: 'pattern', label: 'Diagonal',  svg: '<path d="M0 20L20 0" stroke="CC" stroke-width="1.4"/>', w: 20, h: 20 },
+      { id: 'p-hatch',    group: 'pattern', label: 'Cross-hatch', svg: '<path d="M0 20L20 0M0 0L20 20" stroke="CC" stroke-width="1" fill="none"/>', w: 20, h: 20 },
+      { id: 'p-zigzag',   group: 'pattern', label: 'Zigzag',    svg: '<path d="M0 6L6 0L12 6L18 0L24 6" stroke="CC" stroke-width="1.3" fill="none"/>', w: 24, h: 8 },
+      { id: 'p-tri',      group: 'pattern', label: 'Triangles', svg: '<path d="M11 3L19 17H3Z" fill="none" stroke="CC" stroke-width="1.2"/>', w: 22, h: 22 },
+      { id: 'p-plus',     group: 'pattern', label: 'Plus',      svg: '<path d="M11 6V16M6 11H16" stroke="CC" stroke-width="1.3"/>', w: 22, h: 22 },
+      { id: 'p-rings',    group: 'pattern', label: 'Rings',     svg: '<circle cx="13" cy="13" r="7" fill="none" stroke="CC" stroke-width="1.2"/>', w: 26, h: 26 },
+      { id: 'p-diamond',  group: 'pattern', label: 'Diamonds',  svg: '<path d="M13 2L24 13L13 24L2 13Z" fill="none" stroke="CC" stroke-width="1.1"/>', w: 26, h: 26 },
+      { id: 'p-wave',     group: 'pattern', label: 'Waves',     svg: '<path d="M0 11 Q6 3 12 11 T24 11" stroke="CC" stroke-width="1.3" fill="none"/>', w: 24, h: 16 },
+      { id: 'p-cross',    group: 'pattern', label: 'Crosses',   svg: '<path d="M5 5L13 13M13 5L5 13" stroke="CC" stroke-width="1.2"/>', w: 18, h: 18 },
+      { id: 'p-square',   group: 'pattern', label: 'Squares',   svg: '<rect x="5" y="5" width="12" height="12" fill="none" stroke="CC" stroke-width="1.1"/>', w: 22, h: 22 },
+      { id: 'p-confetti', group: 'pattern', label: 'Confetti',  svg: '<circle cx="6" cy="7" r="1.5" fill="CC"/><rect x="20" y="16" width="3" height="3" fill="CC"/><circle cx="26" cy="9" r="1.3" fill="CC"/><rect x="9" y="24" width="3" height="3" fill="CC"/>', w: 32, h: 32 },
+      { id: 'p-cyandots', group: 'pattern', label: 'Cyan Dots', svg: '<circle cx="11" cy="11" r="1.8" fill="CC"/>', w: 22, h: 22, accent: true },
+      { id: 'p-cyangrid', group: 'pattern', label: 'Cyan Grid', svg: '<path d="M0 0H32M0 0V32" stroke="CC" stroke-width="1" fill="none"/>', w: 32, h: 32, accent: true },
+
+      // ---- Scenes (CSS gradients) ----
+      { id: 's-sunset',  group: 'scene', label: 'Sunset',   grad: 'linear-gradient(160deg,#ff9a6b,#ff6f91 55%,#b84d8f)' },
+      { id: 's-ocean',   group: 'scene', label: 'Ocean',    grad: 'linear-gradient(160deg,#2f97d6,#1e5fa8 60%,#123f78)' },
+      { id: 's-forest',  group: 'scene', label: 'Forest',   grad: 'linear-gradient(160deg,#46a06b,#1f6b46 60%,#134d33)' },
+      { id: 's-aurora',  group: 'scene', label: 'Aurora',   grad: 'linear-gradient(160deg,#1d2b53,#2d6a8f 45%,#3fbf9f)' },
+      { id: 's-dawn',    group: 'scene', label: 'Dawn',     grad: 'linear-gradient(160deg,#fcd9a8,#f7a8a8 60%,#c98fbf)' },
+      { id: 's-dusk',    group: 'scene', label: 'Dusk',     grad: 'linear-gradient(160deg,#5b4b8a,#3a2f6b 60%,#1f1a3f)' },
+      { id: 's-lav',     group: 'scene', label: 'Lavender', grad: 'linear-gradient(160deg,#cdb4f0,#a98fdf 60%,#7d63c4)' },
+      { id: 's-peach',   group: 'scene', label: 'Peach',    grad: 'linear-gradient(160deg,#ffd9b8,#ffb38f 60%,#f78f6f)' },
+      { id: 's-rose',    group: 'scene', label: 'Rose',     grad: 'linear-gradient(160deg,#f7b8c4,#e88fa8 60%,#c46f8f)' },
+      { id: 's-mintsky', group: 'scene', label: 'Mint Sky', grad: 'linear-gradient(160deg,#bde6d4,#8fd6c4 60%,#5fbfb4)' },
+      { id: 's-midnight',group: 'scene', label: 'Midnight', grad: 'linear-gradient(160deg,#1a2030,#0e1320)' },
+      { id: 's-cyanglow',group: 'scene', label: 'Cyan Glow',grad: 'linear-gradient(160deg,#cdeffc,#7fd6f0 60%,#00b4e6)' },
+
+      // ---- Photo scenes (royalty-free, Lorem Picsum) ----
+      { id: 'ph-1', group: 'photo', label: 'Photo 1', pid: 1018 },
+      { id: 'ph-2', group: 'photo', label: 'Photo 2', pid: 1015 },
+      { id: 'ph-3', group: 'photo', label: 'Photo 3', pid: 1019 },
+      { id: 'ph-4', group: 'photo', label: 'Photo 4', pid: 1039 },
+      { id: 'ph-5', group: 'photo', label: 'Photo 5', pid: 1036 },
+      { id: 'ph-6', group: 'photo', label: 'Photo 6', pid: 1043 },
+      { id: 'ph-7', group: 'photo', label: 'Photo 7', pid: 1059 },
+      { id: 'ph-8', group: 'photo', label: 'Photo 8', pid: 1061 }
     ];
+
+    function wpPatternColor(dark, accent) {
+      if (accent) return 'rgba(0,197,255,0.22)';
+      return dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.07)';
+    }
+    function wpBaseColor(dark) { return dark ? '#0e131a' : '#e8edf2'; }
+    function photoUrl(pid, thumb) { return 'https://picsum.photos/id/' + pid + (thumb ? '/200/300' : '/700/1200'); }
+
+    // Returns {color, image, size, repeat} for a preset in the current theme.
+    function presetStyle(p, dark, thumb) {
+      if (p.group === 'solid') {
+        return { color: dark ? p.dark : p.light, image: 'none', size: 'auto', repeat: 'repeat' };
+      }
+      if (p.group === 'pattern') {
+        return { color: wpBaseColor(dark), image: svgUrl(p.svg, p.w, p.h, wpPatternColor(dark, p.accent)), size: p.w + 'px ' + p.h + 'px', repeat: 'repeat' };
+      }
+      if (p.group === 'scene') {
+        return { color: '#222', image: p.grad, size: 'cover', repeat: 'no-repeat' };
+      }
+      if (p.group === 'photo') {
+        const scrim = dark ? 'rgba(8,12,18,0.50)' : 'rgba(255,255,255,0.16)';
+        return { color: '#222', image: 'linear-gradient(' + scrim + ',' + scrim + '), url("' + photoUrl(p.pid, thumb) + '")', size: 'cover', repeat: 'no-repeat' };
+      }
+      return { color: wpBaseColor(dark), image: 'none', size: 'auto', repeat: 'repeat' };
+    }
 
     function getWallpaper() { try { return localStorage.getItem(WP_KEY) || 'default'; } catch(_) { return 'default'; } }
     function getCustomWallpaper() { try { return localStorage.getItem(WP_CUSTOM_KEY) || ''; } catch(_) { return ''; } }
 
     function applyWallpaper() {
-      const wp = getWallpaper();
-      if (wp === 'custom') {
+      const id = getWallpaper();
+      const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+      // Clear inline background styling
+      chatEl.style.backgroundColor = '';
+      chatEl.style.backgroundImage = '';
+      chatEl.style.backgroundSize = '';
+      chatEl.style.backgroundRepeat = '';
+      chatEl.style.backgroundPosition = '';
+
+      if (id === 'default') { chatEl.setAttribute('data-wp', 'default'); return; }
+      chatEl.setAttribute('data-wp', 'styled'); // inert marker; styling is inline
+
+      if (id === 'custom') {
         const data = getCustomWallpaper();
-        if (data) {
-          chatEl.style.setProperty('--wp-custom', 'url("' + data + '")');
-          chatEl.setAttribute('data-wp', 'custom');
-          return;
-        }
-        // No custom image stored → fall back to default
-        chatEl.setAttribute('data-wp', 'default');
+        if (!data) { chatEl.setAttribute('data-wp', 'default'); return; }
+        const scrim = dark ? 'rgba(8,12,18,0.46)' : 'rgba(232,237,242,0.32)';
+        chatEl.style.backgroundImage = 'linear-gradient(' + scrim + ',' + scrim + '), url("' + data + '")';
+        chatEl.style.backgroundSize = 'cover';
+        chatEl.style.backgroundPosition = 'center';
+        chatEl.style.backgroundRepeat = 'no-repeat';
         return;
       }
-      chatEl.style.removeProperty('--wp-custom');
-      chatEl.setAttribute('data-wp', wp);
+
+      const p = WP_PRESETS.find(x => x.id === id);
+      if (!p) { chatEl.setAttribute('data-wp', 'default'); return; }
+      const s = presetStyle(p, dark, false);
+      chatEl.style.backgroundColor = s.color;
+      chatEl.style.backgroundImage = s.image;
+      chatEl.style.backgroundSize = s.size;
+      chatEl.style.backgroundRepeat = s.repeat;
+      chatEl.style.backgroundPosition = s.repeat === 'no-repeat' ? 'center' : 'top left';
     }
 
     function setWallpaper(id) {
@@ -3736,39 +3847,72 @@
     const wpClose = $('wpClose');
     const wpInput = $('wpInput');
 
-    function swatchStyle(p) {
-      // Build an inline background that previews the preset
-      if (p.css) return 'background-color:' + p.bg + ';background-image:' + p.css + ';background-size:' + (p.size || '12px 12px') + ';';
-      return 'background-color:' + p.bg + ';';
+    const WP_GROUPS = [
+      { key: 'solid',   title: 'Colours' },
+      { key: 'pattern', title: 'Patterns' },
+      { key: 'scene',   title: 'Scenes' },
+      { key: 'photo',   title: 'Photo Scenes' }
+    ];
+    const WP_CHECK = '<span class="wp-swatch__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>';
+
+    function swatchInlineStyle(p, dark) {
+      const s = presetStyle(p, dark, true); // thumb=true for lighter photo previews
+      let str = 'background-color:' + s.color + ';';
+      if (s.image && s.image !== 'none') {
+        str += 'background-image:' + s.image + ';background-size:' + (s.repeat === 'repeat' ? s.size : 'cover') + ';background-repeat:' + s.repeat + ';background-position:center;';
+      }
+      return str;
     }
 
     function renderWpGrid() {
       const cur = getWallpaper();
+      const dark = document.documentElement.getAttribute('data-theme') === 'dark';
       let html = '';
-      WP_PRESETS.forEach(p => {
-        html += '<div class="wp-swatch' + (cur === p.id ? ' wp-swatch--active' : '') + '" data-wp-id="' + p.id + '" style="' + swatchStyle(p) + '">'
-              + '<span class="wp-swatch__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>'
-              + '<span class="wp-swatch__label">' + p.label + '</span></div>';
-      });
-      // Custom image swatch
+
+      // Default (dot grid) tile + the custom-upload tile live in a "Basics" row
+      html += '<div class="wp-group-title">Basics</div><div class="wp-grid">';
+      const defStyle = 'background-color:' + wpBaseColor(dark) + ';' +
+        'background-image:' + svgUrl('<circle cx="10" cy="10" r="1.4" fill="CC"/>', 20, 20, wpPatternColor(dark, false)) +
+        ';background-size:14px 14px;background-repeat:repeat;';
+      html += '<div class="wp-swatch' + (cur === 'default' ? ' wp-swatch--active' : '') + '" data-wp-id="default" style="' + defStyle + '">'
+            + WP_CHECK + '<span class="wp-swatch__label">Default</span></div>';
       const customData = getCustomWallpaper();
       const customActive = cur === 'custom' && customData;
-      const customStyle = customData ? ('background-image:url("' + customData + '");') : '';
-      html += '<div class="wp-swatch wp-swatch--upload' + (customActive ? ' wp-swatch--active' : '') + '" id="wpUploadSwatch" style="' + customStyle + '">'
+      html += '<div class="wp-swatch wp-swatch--upload' + (customActive ? ' wp-swatch--active' : '') + '" id="wpUploadSwatch"'
+            + (customData ? ' style="background-image:url(&quot;' + customData + '&quot;);background-size:cover;background-position:center;"' : '') + '>'
             + (customData
-                ? '<span class="wp-swatch__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span class="wp-swatch__label">My image</span>'
-                : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/><line x1="12" y1="8" x2="12" y2="14" transform="translate(6 6)"/></svg>')
+                ? WP_CHECK + '<span class="wp-swatch__label">My image</span>'
+                : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>')
             + '</div>';
+      html += '</div>';
+
+      // Grouped presets
+      WP_GROUPS.forEach(g => {
+        const items = WP_PRESETS.filter(p => p.group === g.key);
+        if (!items.length) return;
+        html += '<div class="wp-group-title">' + g.title + '</div><div class="wp-grid">';
+        items.forEach(p => {
+          const active = cur === p.id;
+          if (p.group === 'photo') {
+            // Use an <img> so a failed load can hide the tile
+            html += '<div class="wp-swatch wp-swatch--photo' + (active ? ' wp-swatch--active' : '') + '" data-wp-id="' + p.id + '">'
+                  + '<img class="wp-swatch__img" src="' + photoUrl(p.pid, true) + '" alt="' + p.label + '" referrerpolicy="no-referrer" loading="lazy" onerror="this.closest(\'.wp-swatch\').style.display=\'none\'" />'
+                  + WP_CHECK + '<span class="wp-swatch__label">' + p.label + '</span></div>';
+          } else {
+            html += '<div class="wp-swatch' + (active ? ' wp-swatch--active' : '') + '" data-wp-id="' + p.id + '" style="' + swatchInlineStyle(p, dark) + '">'
+                  + WP_CHECK + '<span class="wp-swatch__label">' + p.label + '</span></div>';
+          }
+        });
+        html += '</div>';
+      });
+
       wpGrid.innerHTML = html;
 
       wpGrid.querySelectorAll('[data-wp-id]').forEach(sw => {
         sw.addEventListener('click', () => setWallpaper(sw.dataset.wpId));
       });
       const up = $('wpUploadSwatch');
-      if (up) up.addEventListener('click', () => {
-        if (getCustomWallpaper()) { setWallpaper('custom'); } // re-select existing
-        wpInput.click(); // also allow picking a new one
-      });
+      if (up) up.addEventListener('click', () => { wpInput.click(); });
     }
 
     function openWallpaperPanel() {
