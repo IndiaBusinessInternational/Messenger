@@ -1453,7 +1453,7 @@
       </div>
 
       <div class="hdr__title-block" id="hdrTitleBlock">
-        <span class="hdr__name">IBI Messenger <span class="hdr__version" id="appVersion">v3.4</span></span>
+        <span class="hdr__name">IBI Messenger <span class="hdr__version" id="appVersion">v3.5</span></span>
         <span class="hdr__sub">
           <span class="hdr__dot" id="hdrDot"></span>
           <span id="hdrStatus">You: <strong id="hdrSenderName">—</strong></span>
@@ -2319,7 +2319,33 @@
       return identity && msg.senderId === identity.senderId;
     }
 
-    function renderChat() {
+    // True if the chat is scrolled to (or very near) the bottom right now.
+    function isChatNearBottom() {
+      return (chatEl.scrollHeight - chatEl.scrollTop - chatEl.clientHeight) < 140;
+    }
+
+    // Robust scroll-to-bottom: fires immediately, then retries through layout
+    // reflows, font swaps, and async image loads so it never stops short.
+    let _scrollRetryTimers = [];
+    function scrollChatToBottom() {
+      _scrollRetryTimers.forEach(t => clearTimeout(t));
+      _scrollRetryTimers = [];
+      const jump = () => { chatEl.scrollTop = chatEl.scrollHeight; };
+      requestAnimationFrame(() => { jump(); requestAnimationFrame(jump); });
+      // Delayed passes catch late height changes (images decoding, fonts, etc.)
+      [50, 140, 320, 650, 1100, 1800].forEach(d => _scrollRetryTimers.push(setTimeout(jump, d)));
+      // Re-scroll as each not-yet-loaded image finishes
+      chatEl.querySelectorAll('img').forEach(img => {
+        if (!img.complete) {
+          img.addEventListener('load',  jump, { once: true });
+          img.addEventListener('error', jump, { once: true });
+        }
+      });
+    }
+
+    function renderChat(forceScroll) {
+      // Decide BEFORE wiping the DOM whether we should stick to the bottom
+      const stick = forceScroll || history.length === 0 || isChatNearBottom();
       chatEl.innerHTML = '';
       if (!history.length) {
         const empty = document.createElement('div');
@@ -2366,7 +2392,7 @@
         chatEl.appendChild(renderMessage(msg));
         lastSenderId = msg.senderId;
       });
-      requestAnimationFrame(() => { chatEl.scrollTop = chatEl.scrollHeight; });
+      if (stick) scrollChatToBottom();
     }
 
     function renderMessage(msg) {
@@ -3452,7 +3478,7 @@
         replyTo: replyTo || null,
         status: 'sending'
       };
-      history.push(localMsg); saveHistory(); renderChat(); // renderChat scrolls to bottom internally
+      history.push(localMsg); saveHistory(); renderChat(true); // always land at the just-sent message
       setSending(true);
 
       const payload = {
@@ -3483,7 +3509,7 @@
         imageDataUrl: null, imageId: '', imageW: '', imageH: '',
         replyTo: sentReplyTo || null, status: 'sending'
       };
-      history.push(localMsg); saveHistory(); renderChat();
+      history.push(localMsg); saveHistory(); renderChat(true);
       messageInput.value = ''; autoGrow();
       setSending(true);
 
@@ -3994,7 +4020,7 @@
         if (data.now) saveLastSeen(data.now);
         markMessagesAsSeen(data.messages); // ← FIX: initial load was never marking receipts
       }
-      renderChat();
+      renderChat(true); // initial server load — land at the latest message
       // Also mark any messages that were already in localStorage cache
       // (covers messages stored before this feature was deployed)
       setTimeout(function() {
@@ -4022,7 +4048,7 @@
         } else {
           count = 0;
         }
-        renderChat();
+        renderChat(true); // reloaded archive — jump to the latest message
         setOnline(true);
       } catch (err) {
         console.warn('Reload failed:', err);
@@ -4135,7 +4161,7 @@
       };
     }
     updateIdentityUI();
-    renderChat();
+    renderChat(true); // initial render — always land at the latest message
     updateSendButton();
     autoGrow();
 
