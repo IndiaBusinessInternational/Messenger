@@ -766,6 +766,162 @@
     }
     .msginfo__close button:hover { background: var(--border); }
 
+    /* ============ Voice message player ============ */
+    .msg__voice {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 4px;
+      min-width: 180px;
+      max-width: 240px;
+    }
+    .voice-play {
+      flex-shrink: 0;
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      border: 0;
+      display: grid; place-items: center;
+      cursor: pointer;
+      color: #fff;
+    }
+    .msg--sent .voice-play { background: rgba(0, 26, 34, 0.55); }
+    .msg--recv .voice-play { background: var(--ibi-cyan); }
+    .voice-play svg { width: 18px; height: 18px; }
+    .voice-body { flex: 1; min-width: 0; }
+    .voice-track {
+      height: 4px;
+      border-radius: 2px;
+      background: var(--border);
+      position: relative;
+      cursor: pointer;
+      overflow: hidden;
+    }
+    .voice-fill {
+      position: absolute; left: 0; top: 0; bottom: 0;
+      width: 0%;
+      background: var(--ibi-cyan);
+      border-radius: 2px;
+    }
+    .msg--sent .voice-fill { background: rgba(0, 26, 34, 0.6); }
+    .voice-time {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .voice-time__mic { font-size: 11px; }
+
+    /* Recording bar (replaces input bar while recording) */
+    .recording-bar {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 4px;
+    }
+    .recording-bar__dot {
+      width: 11px; height: 11px;
+      border-radius: 50%;
+      background: #e23b3b;
+      animation: recPulse 1s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    @keyframes recPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.25; } }
+    .recording-bar__time {
+      font-family: 'Roboto', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      min-width: 52px;
+    }
+    .recording-bar__hint {
+      flex: 1;
+      font-size: 13px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .recording-bar__cancel, .recording-bar__send {
+      flex-shrink: 0;
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      border: 0;
+      display: grid; place-items: center;
+      cursor: pointer;
+    }
+    .recording-bar__cancel { background: transparent; color: #e23b3b; }
+    .recording-bar__cancel:hover { background: var(--surface-2); }
+    .recording-bar__cancel svg { width: 22px; height: 22px; }
+    .recording-bar__send { background: var(--ibi-cyan); color: #fff; }
+    .recording-bar__send svg { width: 20px; height: 20px; }
+
+    /* ============ Video card ============ */
+    .msg__video {
+      position: relative;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 4px;
+      cursor: pointer;
+      background: #000;
+      min-width: 200px; max-width: 280px;
+      aspect-ratio: 16 / 10;
+      display: grid; place-items: center;
+    }
+    .msg__video-thumb { width: 100%; height: 100%; object-fit: cover; opacity: 0.85; }
+    .msg__video-play {
+      position: absolute;
+      width: 54px; height: 54px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.55);
+      border: 2px solid rgba(255,255,255,0.9);
+      display: grid; place-items: center;
+      pointer-events: none;
+    }
+    .msg__video-play svg { width: 24px; height: 24px; color: #fff; margin-left: 3px; }
+    .msg__video-label {
+      position: absolute;
+      left: 8px; bottom: 8px;
+      background: rgba(0,0,0,0.6);
+      color: #fff;
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      max-width: 80%;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    /* Video player modal (reuses lightbox-style overlay) */
+    .video-modal {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.92);
+      z-index: 400;
+      display: none;
+      flex-direction: column;
+    }
+    .video-modal--open { display: flex; }
+    .video-modal__header {
+      flex: 0 0 auto;
+      display: flex; align-items: center; justify-content: flex-end;
+      padding: max(12px, env(safe-area-inset-top)) 16px 8px;
+    }
+    .video-modal__close {
+      background: transparent; border: 0; color: #fff;
+      cursor: pointer; padding: 8px; border-radius: 50%;
+    }
+    .video-modal__close svg { width: 26px; height: 26px; }
+    .video-modal__body {
+      flex: 1; min-height: 0;
+      display: grid; place-items: center;
+      padding: 0 8px 16px;
+    }
+    .video-modal__body iframe, .video-modal__body video {
+      width: 100%; max-width: 900px; height: 100%; border: 0;
+      background: #000;
+    }
+
     /* ============ File / document attachment bubble ============ */
     .msg__file {
       display: flex;
@@ -1592,7 +1748,7 @@
       </div>
 
       <div class="hdr__title-block" id="hdrTitleBlock">
-        <span class="hdr__name">IBI Messenger <span class="hdr__version" id="appVersion">v4.1</span></span>
+        <span class="hdr__name">IBI Messenger <span class="hdr__version" id="appVersion">v4.2</span></span>
         <span class="hdr__sub">
           <span class="hdr__dot" id="hdrDot"></span>
           <span id="hdrStatus">You: <strong id="hdrSenderName">—</strong></span>
@@ -1756,11 +1912,28 @@
       <div class="input-bar__textwrap">
         <textarea id="messageInput" class="input-bar__textarea" placeholder="Type a message…" rows="1" aria-label="Message" spellcheck="true"></textarea>
       </div>
-      <button type="button" class="input-bar__send" id="sendBtn" aria-label="Send" disabled>
+      <button type="button" class="input-bar__send" id="micBtn" aria-label="Record voice message" title="Voice message">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><path d="M12 18v4M8 22h8"/>
+        </svg>
+      </button>
+      <button type="button" class="input-bar__send" id="sendBtn" aria-label="Send" disabled style="display:none;">
         <svg id="sendIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M22 2 11 13"/><path d="m22 2-7 20-4-9-9-4 20-7z"/>
         </svg>
       </button>
+      <!-- Recording bar — replaces the input controls while recording -->
+      <div class="recording-bar" id="recordingBar" style="display:none;">
+        <span class="recording-bar__dot"></span>
+        <span class="recording-bar__time" id="recordingTime">0:00</span>
+        <span class="recording-bar__hint">Recording… tap ✓ to send</span>
+        <button type="button" class="recording-bar__cancel" id="recordingCancel" aria-label="Cancel recording">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+        </button>
+        <button type="button" class="recording-bar__send" id="recordingSend" aria-label="Send voice message">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </button>
+      </div>
       <input type="file" id="fileInput" accept="image/*" multiple hidden />
       <input type="file" id="cameraInput" accept="image/*" capture="environment" hidden />
       <input type="file" id="docInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt,.zip,.rar,.json,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,video/*,audio/*" hidden />
@@ -1805,6 +1978,16 @@
       <div class="crop-editor__loading" id="cropLoading">Saving…</div>
     </div>
     <div class="crop-editor__hint">Drag the corners to crop · drag the centre to move</div>
+  </div>
+
+  <!-- Video player modal -->
+  <div class="video-modal" id="videoModal" role="dialog" aria-label="Video player" aria-modal="true">
+    <div class="video-modal__header">
+      <button type="button" class="video-modal__close" id="videoModalClose" aria-label="Close video">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="video-modal__body" id="videoModalBody"></div>
   </div>
 
   <!-- Lightbox -->
@@ -2038,6 +2221,14 @@
     const chatEl = $('chat');
     const messageInput = $('messageInput');
     const sendBtn = $('sendBtn');
+    const micBtn = $('micBtn');
+    const recordingBar = $('recordingBar');
+    const recordingTime = $('recordingTime');
+    const recordingCancel = $('recordingCancel');
+    const recordingSend = $('recordingSend');
+    const videoModal = $('videoModal');
+    const videoModalBody = $('videoModalBody');
+    const videoModalClose = $('videoModalClose');
     const attachBtn  = $('attachBtn');
     const fileInput  = $('fileInput');
     const cameraBtn  = $('cameraBtn');
@@ -2643,20 +2834,38 @@
       // File / document / video / audio attachment
       if (msg.attachment && (msg.attachment.fileId || msg.attachment._local)) {
         const att = msg.attachment;
-        const ext = fileExtLabel(att.name, att.mime || '');
-        const color = fileIconColor(ext);
-        const sizeStr = humanSize(att.size);
-        const kindLabel = att.kind === 'video' ? 'Video' : (att.kind === 'audio' ? 'Audio' : 'Document');
-        const metaStr = [sizeStr, att.kind !== 'document' ? kindLabel : ext].filter(Boolean).join(' · ');
-        const pending = att._local && !att.fileId;
-        const dlSvg = pending
-          ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" opacity="0.4"/><path d="M12 6v6l4 2"/></svg>'
-          : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><path d="M12 15V3"/></svg>';
-        html += '<div class="msg__file" data-file-id="' + escapeHtml(att.fileId || '') + '">'
-              + '<div class="msg__file-icon" style="background:' + color + ';">' + escapeHtml(ext) + '</div>'
-              + '<div class="msg__file-body"><span class="msg__file-name">' + escapeHtml(att.name || 'file') + '</span>'
-              + '<span class="msg__file-meta">' + escapeHtml(pending ? 'Uploading…' : metaStr) + '</span></div>'
-              + '<span class="msg__file-dl">' + dlSvg + '</span></div>';
+        const pending = att._local && !att.fileId && !att._localUrl;
+
+        if (att.kind === 'audio') {
+          // Voice message player
+          const dur = att.duration || 0;
+          const durStr = Math.floor(dur / 60) + ':' + String(dur % 60).padStart(2, '0');
+          html += '<div class="msg__voice">'
+                + '<button type="button" class="voice-play" aria-label="Play voice message"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>'
+                + '<div class="voice-body"><div class="voice-track"><div class="voice-fill"></div></div>'
+                + '<div class="voice-time"><span class="voice-time__mic">🎤</span><span>' + (pending ? 'Uploading…' : durStr) + '</span></div></div></div>';
+        } else if (att.kind === 'video') {
+          // Video card with play overlay
+          const poster = att.fileId ? ('https://drive.google.com/thumbnail?id=' + encodeURIComponent(att.fileId) + '&sz=w400') : '';
+          html += '<div class="msg__video" data-video="1">'
+                + (poster ? '<img class="msg__video-thumb" src="' + poster + '" alt="Video" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'" />' : '')
+                + '<div class="msg__video-play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>'
+                + '<div class="msg__video-label">' + escapeHtml(pending ? 'Uploading…' : (att.name || 'Video')) + '</div></div>';
+        } else {
+          // Document card
+          const ext = fileExtLabel(att.name, att.mime || '');
+          const color = fileIconColor(ext);
+          const sizeStr = humanSize(att.size);
+          const metaStr = [sizeStr, ext].filter(Boolean).join(' · ');
+          const dlSvg = pending
+            ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" opacity="0.4"/><path d="M12 6v6l4 2"/></svg>'
+            : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><path d="M12 15V3"/></svg>';
+          html += '<div class="msg__file" data-file-id="' + escapeHtml(att.fileId || '') + '">'
+                + '<div class="msg__file-icon" style="background:' + color + ';">' + escapeHtml(ext) + '</div>'
+                + '<div class="msg__file-body"><span class="msg__file-name">' + escapeHtml(att.name || 'file') + '</span>'
+                + '<span class="msg__file-meta">' + escapeHtml(pending ? 'Uploading…' : metaStr) + '</span></div>'
+                + '<span class="msg__file-dl">' + dlSvg + '</span></div>';
+        }
       }
 
       html += '<p class="msg__text">' + (msg.text ? (searchActive && searchTerm ? highlightSearchInText(msg.text) : linkifyText(msg.text)) : '') + '</p>';
@@ -2731,6 +2940,24 @@
           if (!fid) { showToast('Still uploading…', 'info', 1500); return; }
           window.open('https://drive.google.com/file/d/' + encodeURIComponent(fid) + '/view', '_blank', 'noopener');
         });
+      }
+      // Voice message: tap play
+      const voiceEl = el.querySelector('.msg__voice');
+      if (voiceEl && msg.attachment) {
+        const playBtn = voiceEl.querySelector('.voice-play');
+        const trackEl = voiceEl.querySelector('.voice-track');
+        const att = msg.attachment;
+        const handler = () => {
+          if (att._local && !att.fileId && !att._localUrl) { showToast('Still uploading…', 'info', 1500); return; }
+          toggleVoicePlay(voiceEl, att);
+        };
+        if (playBtn) playBtn.addEventListener('click', handler);
+        if (trackEl) trackEl.addEventListener('click', handler);
+      }
+      // Video: tap to open player modal
+      const videoEl = el.querySelector('.msg__video');
+      if (videoEl && msg.attachment) {
+        videoEl.addEventListener('click', () => openVideoModal(msg.attachment));
       }
       // Quote block: tap → scroll to the original replied-to message
       const quoteEl = el.querySelector('.msg__quote');
@@ -2848,6 +3075,10 @@
     }
     window.addEventListener('popstate', () => {
       // Highest-priority overlay first
+      if (videoModal.classList.contains('video-modal--open')) {
+        closeVideoModal(true);
+        return;
+      }
       if (cropEditor.classList.contains('crop-editor--open')) {
         closeCropEditor(true);
         return;
@@ -3809,6 +4040,238 @@
     }
     attachFileCancel.addEventListener('click', clearFileAttachment);
 
+    // =========================================================
+    // Voice messages — record via MediaRecorder, send as audio attachment
+    // =========================================================
+    let recording = false;
+    let mediaRecorder = null;
+    let mediaStream = null;
+    let recChunks = [];
+    let recStartTs = 0;
+    let recTimer = null;
+    let recMime = '';
+
+    function pickRecorderMime() {
+      const candidates = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus'];
+      if (window.MediaRecorder && MediaRecorder.isTypeSupported) {
+        for (const c of candidates) { if (MediaRecorder.isTypeSupported(c)) return c; }
+      }
+      return '';
+    }
+
+    micBtn.addEventListener('click', startRecording);
+
+    async function startRecording() {
+      if (recording) return;
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) {
+        showToast('Voice recording is not supported on this browser.', 'error', 4000);
+        return;
+      }
+      try {
+        mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      } catch (err) {
+        showToast('Microphone access denied.', 'error', 4000);
+        return;
+      }
+      recMime = pickRecorderMime();
+      try {
+        mediaRecorder = recMime ? new MediaRecorder(mediaStream, { mimeType: recMime }) : new MediaRecorder(mediaStream);
+      } catch (e) {
+        mediaRecorder = new MediaRecorder(mediaStream);
+      }
+      recChunks = [];
+      mediaRecorder.ondataavailable = (e) => { if (e.data && e.data.size > 0) recChunks.push(e.data); };
+      mediaRecorder.start();
+      recording = true;
+      recStartTs = Date.now();
+
+      // Show recording bar, hide input controls
+      attachBtn.style.display = 'none'; cameraBtn.style.display = 'none'; docBtn.style.display = 'none';
+      micBtn.style.display = 'none'; sendBtn.style.display = 'none';
+      messageInput.parentElement.style.display = 'none';
+      recordingBar.style.display = 'flex';
+      recordingTime.textContent = '0:00';
+      recTimer = setInterval(() => {
+        const s = Math.floor((Date.now() - recStartTs) / 1000);
+        recordingTime.textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+        if (s >= 300) finishRecording(true); // 5-min cap
+      }, 250);
+      if (navigator.vibrate) navigator.vibrate(15);
+    }
+
+    function teardownRecordingUI() {
+      clearInterval(recTimer); recTimer = null;
+      recordingBar.style.display = 'none';
+      attachBtn.style.display = ''; cameraBtn.style.display = ''; docBtn.style.display = '';
+      messageInput.parentElement.style.display = '';
+      recording = false;
+      if (mediaStream) { mediaStream.getTracks().forEach(t => t.stop()); mediaStream = null; }
+      updateSendButton();
+    }
+
+    recordingCancel.addEventListener('click', () => {
+      if (!recording) return;
+      try { mediaRecorder.onstop = null; mediaRecorder.stop(); } catch(_) {}
+      recChunks = [];
+      teardownRecordingUI();
+      showToast('Recording cancelled', 'info', 1500);
+    });
+
+    recordingSend.addEventListener('click', () => finishRecording(false));
+
+    function finishRecording(autoStopped) {
+      if (!recording || !mediaRecorder) return;
+      const durationSec = Math.max(1, Math.round((Date.now() - recStartTs) / 1000));
+      mediaRecorder.onstop = async () => {
+        const blob = new Blob(recChunks, { type: recMime || 'audio/webm' });
+        teardownRecordingUI();
+        if (!blob.size) { showToast('Nothing recorded', 'error', 2000); return; }
+        // Convert to base64 and send as audio attachment
+        try {
+          const base64 = await blobToBase64(blob);
+          const ext = (blob.type.indexOf('mp4') !== -1) ? 'm4a' : (blob.type.indexOf('ogg') !== -1 ? 'ogg' : 'webm');
+          const file = {
+            kind: 'audio', base64: base64, mime: blob.type || 'audio/webm',
+            name: 'voice_' + Date.now() + '.' + ext, size: blob.size, duration: durationSec
+          };
+          const localUrl = URL.createObjectURL(blob);
+          await _sendVoiceMessage(file, localUrl, durationSec);
+        } catch (err) {
+          console.error('Voice send failed:', err);
+          showToast('Could not send voice message.', 'error', 4000);
+        }
+      };
+      try { mediaRecorder.stop(); } catch(_) { teardownRecordingUI(); }
+    }
+
+    function blobToBase64(blob) {
+      return new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onerror = () => reject(new Error('read failed'));
+        r.onload = () => resolve(String(r.result).split(',')[1]);
+        r.readAsDataURL(blob);
+      });
+    }
+
+    async function _sendVoiceMessage(file, localUrl, durationSec) {
+      const messageId = 'msg_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10);
+      const ts = new Date().toISOString();
+      const localMsg = {
+        messageId, timestamp: ts,
+        sender: identity.sender, senderId: identity.senderId,
+        phone: identity.phone || '',
+        type: 'file', text: '',
+        imageId: '', imageW: '', imageH: '',
+        attachment: { kind: 'audio', fileId: '', name: file.name, mime: file.mime, size: file.size, duration: durationSec, _local: true, _localUrl: localUrl },
+        replyTo: null, status: 'sending'
+      };
+      history.push(localMsg); saveHistory(); renderChat(true);
+      setSending(true);
+      const payload = {
+        messageId,
+        sender: identity.sender, senderId: identity.senderId,
+        phone: identity.phone || '', text: '',
+        clientTimestamp: ts,
+        userAgent: navigator.userAgent.substring(0, 200),
+        attachment: { kind: 'audio', base64: file.base64, mime: file.mime, name: file.name, size: file.size, duration: durationSec }
+      };
+      await _postToGAS(messageId, JSON.stringify(payload));
+      setSending(false);
+    }
+
+    // =========================================================
+    // Voice playback — fetch small audio via media proxy → blob → play
+    // =========================================================
+    const _audioBlobCache = {}; // fileId → objectURL
+    let _currentAudio = null;
+    let _currentVoiceEl = null;
+
+    async function getAudioUrl(att) {
+      if (att._localUrl) return att._localUrl; // sender's own just-recorded clip
+      if (_audioBlobCache[att.fileId]) return _audioBlobCache[att.fileId];
+      const url = GAS_WEB_APP_URL + (GAS_WEB_APP_URL.indexOf('?') === -1 ? '?' : '&') + 'action=media&id=' + encodeURIComponent(att.fileId);
+      const res = await fetch(url);
+      const data = await res.json();
+      if (!data || !data.ok) throw new Error((data && data.error) || 'fetch failed');
+      const bin = atob(data.base64);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      const blob = new Blob([bytes], { type: data.mime || att.mime || 'audio/webm' });
+      const objUrl = URL.createObjectURL(blob);
+      _audioBlobCache[att.fileId] = objUrl;
+      return objUrl;
+    }
+
+    async function toggleVoicePlay(voiceEl, att) {
+      const fill = voiceEl.querySelector('.voice-fill');
+      const playIcon = voiceEl.querySelector('.voice-play');
+      // If this one is playing, pause it
+      if (_currentVoiceEl === voiceEl && _currentAudio && !_currentAudio.paused) {
+        _currentAudio.pause();
+        setVoiceIcon(playIcon, false);
+        return;
+      }
+      // Stop any other playing audio
+      if (_currentAudio) { try { _currentAudio.pause(); } catch(_) {} if (_currentVoiceEl) setVoiceIcon(_currentVoiceEl.querySelector('.voice-play'), false); }
+
+      setVoiceIcon(playIcon, false, true); // loading
+      let url;
+      try { url = await getAudioUrl(att); }
+      catch (err) { showToast('Could not load voice message.', 'error', 3000); setVoiceIcon(playIcon, false); return; }
+
+      const audio = new Audio(url);
+      _currentAudio = audio; _currentVoiceEl = voiceEl;
+      audio.addEventListener('timeupdate', () => {
+        if (audio.duration) fill.style.width = (audio.currentTime / audio.duration * 100) + '%';
+      });
+      audio.addEventListener('ended', () => { setVoiceIcon(playIcon, false); fill.style.width = '0%'; });
+      audio.play().then(() => setVoiceIcon(playIcon, true)).catch(() => {
+        showToast('Playback not supported for this clip on this device.', 'error', 4000);
+        setVoiceIcon(playIcon, false);
+      });
+    }
+
+    function setVoiceIcon(btn, playing, loading) {
+      if (!btn) return;
+      if (loading) {
+        btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9" opacity="0.4"/><path d="M12 3a9 9 0 0 1 9 9"/></svg>';
+        return;
+      }
+      btn.innerHTML = playing
+        ? '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>'
+        : '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+    }
+
+    // =========================================================
+    // Video player modal (Drive preview iframe — streams any size)
+    // =========================================================
+    function openVideoModal(att) {
+      videoModalBody.innerHTML = '';
+      if (att._localUrl) {
+        const v = document.createElement('video');
+        v.src = att._localUrl; v.controls = true; v.autoplay = true; v.playsInline = true;
+        videoModalBody.appendChild(v);
+      } else if (att.fileId) {
+        const iframe = document.createElement('iframe');
+        iframe.src = 'https://drive.google.com/file/d/' + encodeURIComponent(att.fileId) + '/preview';
+        iframe.allow = 'autoplay; fullscreen';
+        iframe.allowFullscreen = true;
+        videoModalBody.appendChild(iframe);
+      } else {
+        showToast('Still uploading…', 'info', 1500);
+        return;
+      }
+      videoModal.classList.add('video-modal--open');
+      pushOverlayState('video');
+    }
+    function closeVideoModal(fromBack) {
+      if (!videoModal.classList.contains('video-modal--open')) return;
+      videoModal.classList.remove('video-modal--open');
+      videoModalBody.innerHTML = ''; // stops playback
+      if (!fromBack && history.state && history.state.ibiOverlay === 'video') window.history.back();
+    }
+    videoModalClose.addEventListener('click', () => closeVideoModal(false));
+
     // Gallery — multiple files
     fileInput.addEventListener('change', async (e) => {
       const files = Array.from(e.target.files || []);
@@ -3981,6 +4444,15 @@
     function updateSendButton() {
       const hasContent = messageInput.value.trim().length > 0 || pendingImages.length > 0 || !!pendingFile;
       sendBtn.disabled = !hasContent || !identity;
+      // WhatsApp-style: show send when there's content, mic when empty
+      if (recording) return; // don't toggle while recording
+      if (hasContent) {
+        sendBtn.style.display = '';
+        micBtn.style.display = 'none';
+      } else {
+        sendBtn.style.display = 'none';
+        micBtn.style.display = '';
+      }
     }
     messageInput.addEventListener('input', () => { autoGrow(); updateSendButton(); });
     messageInput.addEventListener('keydown', (e) => {

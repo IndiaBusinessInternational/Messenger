@@ -106,6 +106,7 @@ function doGet(e) {
     const action = (params.action || 'status').toLowerCase();
     if (action === 'fetch')    return _handleFetch(params);
     if (action === 'receipts') return _handleGetReceipts(params);
+    if (action === 'media')    return _handleMedia(params);
     return _statusPage();
   } catch (err) {
     return _json({ ok: false, error: (err && err.message) ? err.message : String(err) });
@@ -437,6 +438,27 @@ function _handlePin(payload) {
   sheet.getRange(rowIdx, colEditedAt).setValue(pinnedAtDate); // bump so others refresh
   SpreadsheetApp.flush();
   return _json({ ok: true, messageId: messageId, pinnedAt: doPin ? pinnedAtDate.toISOString() : '', editedAt: pinnedAtDate.toISOString() });
+}
+
+/* =====================================================================
+   MEDIA  —  proxies a small Drive file (voice clip) back as base64 so the
+   client can build a blob URL and play it inline. Capped to keep responses
+   small; large videos use the Drive preview iframe instead.
+   ===================================================================== */
+function _handleMedia(params) {
+  const id = _str(params.id, 100);
+  if (!id) return _json({ ok: false, error: 'Missing id.' });
+  try {
+    const file = DriveApp.getFileById(id);
+    const blob = file.getBlob();
+    const bytes = blob.getBytes();
+    if (bytes.length > 8 * 1024 * 1024) {
+      return _json({ ok: false, error: 'File too large to stream.', tooLarge: true });
+    }
+    return _json({ ok: true, base64: Utilities.base64Encode(bytes), mime: blob.getContentType() });
+  } catch (e) {
+    return _json({ ok: false, error: e.message });
+  }
 }
 
 /* =====================================================================

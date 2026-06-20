@@ -2,7 +2,7 @@
  * Minimal SW: enables PWA installability + offline shell caching.
  * Network-first for all requests so live chat data is never stale.
  */
-const CACHE  = 'ibi-messenger-v4.1';
+const CACHE  = 'ibi-messenger-v4.2';
 const SHELL  = ['./'];          // cache the app shell only
 
 self.addEventListener('install', e => {
