@@ -2149,7 +2149,7 @@
       </div>
 
       <div class="hdr__title-block" id="hdrTitleBlock">
-        <span class="hdr__name"><span class="hdr__name-text">IBI Group Messenger</span><span class="hdr__version" id="appVersion">v5.3</span></span>
+        <span class="hdr__name"><span class="hdr__name-text">IBI Group Messenger</span><span class="hdr__version" id="appVersion">v5.4</span></span>
         <span class="hdr__sub">
           <span class="hdr__dot" id="hdrDot"></span>
           <span id="hdrStatus">You: <strong id="hdrSenderName">—</strong></span>
@@ -5947,42 +5947,39 @@
     const JITSI_DOMAIN = 'meet.jit.si';
     const voiceCallBtn = $('voiceCallBtn');
     const videoCallBtn = $('videoCallBtn');
-    const callModal = $('callModal');
-    const callModalBody = $('callModalBody');
-    const callModalTitle = $('callModalTitle');
-    const callOpenTab = $('callOpenTab');
-    const callEndBtn = $('callEndBtn');
-    const callLoading = $('callLoading');
-    let jitsiApi = null;
-    let jitsiScriptLoading = null;
+    const callModal = $('callModal'); // retained so the back-button handler stays valid
     let currentCallRoom = '';
-
-    function loadJitsiScript() {
-      if (window.JitsiMeetExternalAPI) return Promise.resolve();
-      if (jitsiScriptLoading) return jitsiScriptLoading;
-      jitsiScriptLoading = new Promise((resolve, reject) => {
-        const s = document.createElement('script');
-        s.src = 'https://' + JITSI_DOMAIN + '/external_api.js';
-        s.async = true;
-        s.onload = () => resolve();
-        s.onerror = () => reject(new Error('Failed to load Jitsi'));
-        document.head.appendChild(s);
-      });
-      return jitsiScriptLoading;
-    }
 
     function newRoomName() {
       // Unguessable room name keeps the call private
       const rnd = Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 6);
-      return 'IBIMessenger' + rnd;
+      return 'IBIGroupMessenger' + rnd;
     }
 
-    // Start a new call: post an invite to the channel, then join
-    async function startCall(mode) {
+    // Build the meet.jit.si room URL. We open this in a REAL browser tab (not an
+    // embedded iframe): meet.jit.si requires the first participant to sign in, and
+    // that sign-in is blocked inside a cross-origin iframe — which is exactly why the
+    // old in-app embed hung on "Connecting…". A real tab avoids that entirely.
+    function callUrl(room, mode) {
+      const cfg = ['config.disableDeepLinking=true'];
+      if (mode !== 'video') cfg.push('config.startWithVideoMuted=true'); // voice → camera off
+      return 'https://' + JITSI_DOMAIN + '/' + encodeURIComponent(room) + '#' + cfg.join('&');
+    }
+
+    // Open a call. MUST run synchronously inside the click handler so the browser
+    // treats window.open as user-initiated (otherwise the pop-up gets blocked).
+    function openCall(room, mode) {
+      currentCallRoom = room;
+      const win = window.open(callUrl(room, mode), '_blank');
+      if (!win) showToast('Allow pop-ups for this site to open the call.', 'info', 5000);
+    }
+
+    // Start a new call: open it immediately, then post a "Join" card for the team.
+    function startCall(mode) {
       if (!identity) { showIdentityModal(false); return; }
       const room = newRoomName();
-      _sendCallInvite(room, mode); // post invite so the team can join (group support)
-      openCall(room, mode);
+      openCall(room, mode);        // synchronous → opens the call tab within the gesture
+      _sendCallInvite(room, mode); // async, fire-and-forget → posts the invite card
     }
 
     async function _sendCallInvite(room, mode) {
@@ -6008,71 +6005,16 @@
       _postToGAS(messageId, JSON.stringify(payload));
     }
 
-    async function openCall(room, mode) {
-      currentCallRoom = room;
-      callModalTitle.textContent = (mode === 'video' ? 'Video call' : 'Voice call');
-      callLoading.style.display = 'grid';
-      callLoading.textContent = 'Connecting…';
-      callModal.classList.add('call-modal--open');
-      pushOverlayState('call');
-
-      try {
-        await loadJitsiScript();
-      } catch (err) {
-        callLoading.textContent = 'Opening call in a new tab…';
-        window.open('https://' + JITSI_DOMAIN + '/' + room, '_blank', 'noopener');
-        return;
-      }
-      if (!window.JitsiMeetExternalAPI) {
-        window.open('https://' + JITSI_DOMAIN + '/' + room, '_blank', 'noopener');
-        return;
-      }
-
-      if (jitsiApi) { try { jitsiApi.dispose(); } catch(_) {} jitsiApi = null; }
-      callModalBody.querySelectorAll('iframe').forEach(f => f.remove());
-
-      const options = {
-        roomName: room,
-        parentNode: callModalBody,
-        width: '100%', height: '100%',
-        userInfo: { displayName: identity.sender ? identity.sender.split(',')[0].trim() : 'IBI' },
-        configOverwrite: {
-          startWithVideoMuted: (mode !== 'video'),
-          startWithAudioMuted: false,
-          prejoinPageEnabled: false,
-          disableDeepLinking: true
-        },
-        interfaceConfigOverwrite: {
-          SHOW_JITSI_WATERMARK: false,
-          SHOW_WATERMARK_FOR_GUESTS: false,
-          MOBILE_APP_PROMO: false
-        }
-      };
-      try {
-        jitsiApi = new JitsiMeetExternalAPI(JITSI_DOMAIN, options);
-        jitsiApi.addEventListener('videoConferenceJoined', () => { callLoading.style.display = 'none'; });
-        jitsiApi.addEventListener('readyToClose', () => closeCall(false));
-      } catch (err) {
-        console.error('Jitsi init failed:', err);
-        window.open('https://' + JITSI_DOMAIN + '/' + room, '_blank', 'noopener');
-      }
-    }
-
+    // Retained so the popstate/back-button handler stays valid (modal is unused now)
     function closeCall(fromBack) {
-      if (!callModal.classList.contains('call-modal--open')) return;
-      if (jitsiApi) { try { jitsiApi.dispose(); } catch(_) {} jitsiApi = null; }
-      callModalBody.querySelectorAll('iframe').forEach(f => f.remove());
-      callModal.classList.remove('call-modal--open');
-      currentCallRoom = '';
-      if (!fromBack && history.state && history.state.ibiOverlay === 'call') window.history.back();
+      if (callModal && callModal.classList.contains('call-modal--open')) {
+        callModal.classList.remove('call-modal--open');
+        if (!fromBack && history.state && history.state.ibiOverlay === 'call') window.history.back();
+      }
     }
 
     voiceCallBtn.addEventListener('click', () => startCall('audio'));
     videoCallBtn.addEventListener('click', () => startCall('video'));
-    callEndBtn.addEventListener('click', () => closeCall(false));
-    callOpenTab.addEventListener('click', () => {
-      if (currentCallRoom) window.open('https://' + JITSI_DOMAIN + '/' + currentCallRoom, '_blank', 'noopener');
-    });
 
     // Gallery — multiple files
     fileInput.addEventListener('change', async (e) => {
