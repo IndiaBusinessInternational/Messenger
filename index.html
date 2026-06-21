@@ -2154,7 +2154,7 @@
       </div>
 
       <div class="hdr__title-block" id="hdrTitleBlock">
-        <span class="hdr__name"><span class="hdr__name-text">IBI Group Messenger</span><span class="hdr__version" id="appVersion">v5.6</span></span>
+        <span class="hdr__name"><span class="hdr__name-text">IBI Group Messenger</span><span class="hdr__version" id="appVersion">v5.7</span></span>
         <span class="hdr__sub">
           <span class="hdr__dot" id="hdrDot"></span>
           <span id="hdrStatus">You: <strong id="hdrSenderName">—</strong></span>
@@ -6076,29 +6076,42 @@
       if (changed) saveRoster(r);
       return r;
     }
-    // Distinct teammates (everyone ever seen, minus yourself) for the call chooser
+    // Normalize a name for self-exclusion & de-duplication (case/punctuation-insensitive)
+    function normName(s) { return (s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim(); }
+
+    // Distinct teammates for the call chooser: everyone ever seen, minus YOU (matched by
+    // name as well as id, so your own older/renamed sender-ids don't leak in), and
+    // de-duplicated by name (so one person under several ids shows up only once).
     function callMembers() {
       const r = rememberSenders();
-      const map = new Map();
+      const myNorm = identity ? normName((identity.sender || '').split(',')[0]) : '';
+      const seen = new Set();
+      const out = [];
       Object.keys(r).forEach(id => {
-        if (identity && id === identity.senderId) return;
-        const n = (r[id] || '').trim();
-        if (n) map.set(id, n);
+        if (identity && id === identity.senderId) return; // it's me (current id)
+        const name = (r[id] || '').trim();
+        if (!name) return;
+        const nn = normName(name);
+        if (nn && nn === myNorm) return;                  // it's me (an older / renamed id)
+        if (seen.has(nn)) return;                         // same person under another id
+        seen.add(nn);
+        out.push(name);
       });
-      return Array.from(map.values());
+      return out;
     }
 
     const CALL_PERSON_IC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 12 0v1"/></svg>';
     const CALL_GROUP_IC  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 20v-1a5 5 0 0 1 9.4-2.4"/><circle cx="17.5" cy="9" r="2.6"/><path d="M14.8 20v-1a4.6 4.6 0 0 1 6.7-3.9"/></svg>';
+    const CALL_ADD_IC    = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>';
 
-    function openCallSheet(mode) {
-      if (!identity) { showIdentityModal(false); return; }
-      const members = callMembers(); // may be empty on a brand-new device — we still show "Everyone"
-      callSheetTitle.textContent = (mode === 'video' ? 'Start a video call' : 'Start a voice call');
+    // (Re)build the chooser's option list. Kept separate so "Add someone…" can refresh it.
+    function buildCallOptions(mode) {
+      const members = callMembers();
       let html = '<button type="button" class="action-sheet__item" data-call-target="">' + CALL_GROUP_IC + '<span>Everyone</span></button>';
       members.forEach(name => {
         html += '<button type="button" class="action-sheet__item" data-call-target="' + escapeHtml(name) + '">' + CALL_PERSON_IC + '<span>' + escapeHtml(name) + '</span></button>';
       });
+      html += '<button type="button" class="action-sheet__item" id="callAddSomeone">' + CALL_ADD_IC + '<span>Add someone…</span></button>';
       callSheetOptions.innerHTML = html;
       callSheetOptions.querySelectorAll('[data-call-target]').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -6106,6 +6119,23 @@
           closeCallSheet(false);
         });
       });
+      const addBtn = callSheetOptions.querySelector('#callAddSomeone');
+      if (addBtn) addBtn.addEventListener('click', () => {
+        let name = '';
+        try { name = (window.prompt('Add a teammate to the call list (type their name):') || '').trim(); } catch (_) { name = ''; }
+        if (!name) return;
+        const r = loadRoster();
+        r['manual:' + normName(name)] = name; // persists → they stay in the list next time too
+        saveRoster(r);
+        buildCallOptions(mode);                // refresh — then tap the new name to place the call
+        try { showToast('Added “' + name + '”. Tap their name to call.', 'info', 3500); } catch (_) {}
+      });
+    }
+
+    function openCallSheet(mode) {
+      if (!identity) { showIdentityModal(false); return; }
+      callSheetTitle.textContent = (mode === 'video' ? 'Start a video call' : 'Start a voice call');
+      buildCallOptions(mode);
       callBackdrop.classList.add('action-sheet-backdrop--open');
       callSheet.classList.add('action-sheet--open');
       pushOverlayState('callsheet');
@@ -6932,6 +6962,18 @@
 
     function mergeIncoming(messages) {
       if (!messages || !messages.length) return { added: 0, deleted: 0, newIncoming: [] };
+      // Remember every sender in this batch into the persistent roster, so teammates stay
+      // callable even after their older messages are trimmed from local history.
+      try {
+        const _r = loadRoster(); let _rc = false;
+        messages.forEach(srv => {
+          if (srv && srv.senderId && srv.sender && !srv.deletedAt) {
+            const _s = (srv.sender || '').split(',')[0].trim();
+            if (_s && _r[srv.senderId] !== _s) { _r[srv.senderId] = _s; _rc = true; }
+          }
+        });
+        if (_rc) saveRoster(_r);
+      } catch (_) {}
       const existingIds = new Set(history.map(m => m.messageId));
       let added = 0;
       let deleted = 0;
