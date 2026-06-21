@@ -170,6 +170,7 @@ function _handleSend(payload) {
       room: _str(fileAttach.room, 120),
       mode: (fileAttach.mode === 'video') ? 'video' : 'audio',
       by: _str(fileAttach.by, 120),
+      target: _str(fileAttach.target, 120),
       startedAt: new Date().toISOString()
     });
   } else if (fileAttach && fileAttach.kind === 'product') {

@@ -2149,7 +2149,7 @@
       </div>
 
       <div class="hdr__title-block" id="hdrTitleBlock">
-        <span class="hdr__name"><span class="hdr__name-text">IBI Group Messenger</span><span class="hdr__version" id="appVersion">v5.4</span></span>
+        <span class="hdr__name"><span class="hdr__name-text">IBI Group Messenger</span><span class="hdr__version" id="appVersion">v5.5</span></span>
         <span class="hdr__sub">
           <span class="hdr__dot" id="hdrDot"></span>
           <span id="hdrStatus">You: <strong id="hdrSenderName">—</strong></span>
@@ -2658,6 +2658,17 @@
       <span>Share live · 1 hour</span>
     </button>
     <button type="button" class="action-sheet__item action-sheet__item--cancel" id="locCancel" role="menuitem">Cancel</button>
+  </div>
+
+  <div class="action-sheet-backdrop" id="callBackdrop"></div>
+  <div class="action-sheet" id="callSheet" role="menu" aria-label="Start a call">
+    <div class="action-sheet__handle" aria-hidden="true"></div>
+    <div class="action-sheet__preview" style="display:block;">
+      <strong id="callSheetTitle">Start a call</strong>
+      <span>Pick who to call. Everyone in the team still sees the invite.</span>
+    </div>
+    <div id="callSheetOptions"></div>
+    <button type="button" class="action-sheet__item action-sheet__item--cancel" id="callSheetCancel" role="menuitem">Cancel</button>
   </div>
 
   <!-- Starred messages view -->
@@ -3474,7 +3485,7 @@
             : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>';
           html += '<div class="msg__call" data-call-room="' + escapeHtml(att.room || '') + '" data-call-mode="' + (isVideo ? 'video' : 'audio') + '">'
                 + '<span class="msg__call-ic">' + callIcon + '</span>'
-                + '<div class="msg__call-body"><span class="msg__call-title">' + (isVideo ? 'Video call' : 'Voice call') + '</span>'
+                + '<div class="msg__call-body"><span class="msg__call-title">' + (isVideo ? 'Video call' : 'Voice call') + (att.target ? ' for ' + escapeHtml(att.target) : '') + '</span>'
                 + '<span class="msg__call-sub">Started by ' + escapeHtml(who) + '</span></div>'
                 + '<button type="button" class="msg__call-join">Join</button></div>';
         } else if (att.kind === 'location') {
@@ -3797,6 +3808,10 @@
       }
       if (locSheet.classList.contains('action-sheet--open')) {
         closeLocationSheet(true);
+        return;
+      }
+      if (callSheet.classList.contains('action-sheet--open')) {
+        closeCallSheet(true);
         return;
       }
       if (wpPanel.classList.contains('msginfo--open')) {
@@ -4327,7 +4342,7 @@
 
     function notifPreview(msg) {
       const att = msg.attachment;
-      if (att && att.kind === 'call') return (att.mode === 'video' ? '📹 Incoming video call' : '📞 Incoming voice call');
+      if (att && att.kind === 'call') return (att.mode === 'video' ? '📹 Incoming video call' : '📞 Incoming voice call') + (att.target ? ' for ' + att.target : '');
       if (att && att.kind === 'product') return '🛍 ' + (att.name || 'Product');
       if (att && att.kind === 'location') return '📍 Location';
       if (att && att.kind === 'audio') return '🎤 Voice message';
@@ -4349,8 +4364,8 @@
         const isCall = msg.attachment && msg.attachment.kind === 'call';
         if (isCall) sawCall = true;
         const who = (msg.sender || 'Someone').split(',')[0].trim();
-        const title = isCall ? (msg.attachment.mode === 'video' ? '📹 Incoming video call' : '📞 Incoming voice call') : who;
-        const body = isCall ? (who + ' started a call — tap Join in the chat') : notifPreview(msg);
+        const title = isCall ? ((msg.attachment.mode === 'video' ? '📹 Incoming video call' : '📞 Incoming voice call') + (msg.attachment.target ? ' for ' + msg.attachment.target : '')) : who;
+        const body = isCall ? (who + ' started a call' + (msg.attachment.target ? ' for ' + msg.attachment.target : '') + ' — tap Join in the chat') : notifPreview(msg);
         try {
           const n = new Notification(title, {
             body: body,
@@ -5975,17 +5990,18 @@
     }
 
     // Start a new call: open it immediately, then post a "Join" card for the team.
-    function startCall(mode) {
+    // target = '' means everyone; otherwise a person's name (a label, not a lock).
+    function startCall(mode, target) {
       if (!identity) { showIdentityModal(false); return; }
       const room = newRoomName();
-      openCall(room, mode);        // synchronous → opens the call tab within the gesture
-      _sendCallInvite(room, mode); // async, fire-and-forget → posts the invite card
+      openCall(room, mode);                      // synchronous → opens the call tab within the gesture
+      _sendCallInvite(room, mode, target || ''); // async, fire-and-forget → posts the invite card
     }
 
-    async function _sendCallInvite(room, mode) {
+    async function _sendCallInvite(room, mode, target) {
       const messageId = 'msg_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10);
       const ts = new Date().toISOString();
-      const att = { kind: 'call', room: room, mode: mode, by: identity.sender, startedAt: ts };
+      const att = { kind: 'call', room: room, mode: mode, by: identity.sender, target: target || '', startedAt: ts };
       const localMsg = {
         messageId, timestamp: ts,
         sender: identity.sender, senderId: identity.senderId,
@@ -6000,7 +6016,7 @@
         phone: identity.phone || '', text: '',
         clientTimestamp: ts,
         userAgent: navigator.userAgent.substring(0, 200),
-        attachment: { kind: 'call', room: room, mode: mode, by: identity.sender }
+        attachment: { kind: 'call', room: room, mode: mode, by: identity.sender, target: target || '' }
       };
       _postToGAS(messageId, JSON.stringify(payload));
     }
@@ -6013,8 +6029,58 @@
       }
     }
 
-    voiceCallBtn.addEventListener('click', () => startCall('audio'));
-    videoCallBtn.addEventListener('click', () => startCall('video'));
+    // --- Call target chooser (Everyone / a specific person) ---
+    const callSheet = $('callSheet');
+    const callBackdrop = $('callBackdrop');
+    const callSheetOptions = $('callSheetOptions');
+    const callSheetCancel = $('callSheetCancel');
+    const callSheetTitle = $('callSheetTitle');
+
+    // Distinct people in the channel (derived from chat history), excluding yourself
+    function callMembers() {
+      const map = new Map();
+      history.forEach(m => {
+        if (!m.senderId || (identity && m.senderId === identity.senderId)) return;
+        const short = (m.sender || 'Member').split(',')[0].trim() || 'Member';
+        map.set(m.senderId, short);
+      });
+      return Array.from(map.values());
+    }
+
+    const CALL_PERSON_IC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 12 0v1"/></svg>';
+    const CALL_GROUP_IC  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 20v-1a5 5 0 0 1 9.4-2.4"/><circle cx="17.5" cy="9" r="2.6"/><path d="M14.8 20v-1a4.6 4.6 0 0 1 6.7-3.9"/></svg>';
+
+    function openCallSheet(mode) {
+      if (!identity) { showIdentityModal(false); return; }
+      const members = callMembers();
+      if (!members.length) { startCall(mode, ''); return; } // nobody else known yet → call everyone
+      callSheetTitle.textContent = (mode === 'video' ? 'Start a video call' : 'Start a voice call');
+      let html = '<button type="button" class="action-sheet__item" data-call-target="">' + CALL_GROUP_IC + '<span>Everyone</span></button>';
+      members.forEach(name => {
+        html += '<button type="button" class="action-sheet__item" data-call-target="' + escapeHtml(name) + '">' + CALL_PERSON_IC + '<span>' + escapeHtml(name) + '</span></button>';
+      });
+      callSheetOptions.innerHTML = html;
+      callSheetOptions.querySelectorAll('[data-call-target]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          startCall(mode, btn.dataset.callTarget); // opens the call tab synchronously within this click
+          closeCallSheet(false);
+        });
+      });
+      callBackdrop.classList.add('action-sheet-backdrop--open');
+      callSheet.classList.add('action-sheet--open');
+      pushOverlayState('callsheet');
+    }
+    function closeCallSheet(fromBack) {
+      if (!callSheet.classList.contains('action-sheet--open')) return;
+      callSheet.classList.remove('action-sheet--open');
+      callBackdrop.classList.remove('action-sheet-backdrop--open');
+      if (!fromBack && history.state && history.state.ibiOverlay === 'callsheet') window.history.back();
+    }
+    callBackdrop.addEventListener('click', () => closeCallSheet(false));
+    callSheetCancel.addEventListener('click', () => closeCallSheet(false));
+
+    voiceCallBtn.addEventListener('click', () => openCallSheet('audio'));
+    videoCallBtn.addEventListener('click', () => openCallSheet('video'));
 
     // Gallery — multiple files
     fileInput.addEventListener('change', async (e) => {
