@@ -1,8 +1,8 @@
-/* IBI Messenger — Service Worker
+/* IBI Group Messenger — Service Worker
  * Minimal SW: enables PWA installability + offline shell caching.
  * Network-first for all requests so live chat data is never stale.
  */
-const CACHE  = 'ibi-messenger-v5.2';
+const CACHE  = 'ibi-group-messenger-v5.3';
 const SHELL  = ['./'];          // cache the app shell only
 
 self.addEventListener('install', e => {

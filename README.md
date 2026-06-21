@@ -1,4 +1,4 @@
-# IBI Messenger — Two-Way Chat
+# IBI Group Messenger — Two-Way Chat
 
 A WhatsApp-style two-way chat between owner and staff, with all messages archived in a Google Sheet and image attachments stored in Google Drive.
 

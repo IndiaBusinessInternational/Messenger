@@ -1,6 +1,6 @@
 {
-  "name": "IBI Messenger",
-  "short_name": "IBI Messenger",
+  "name": "IBI Group Messenger",
+  "short_name": "IBI Group",
   "description": "India Business International team messaging — eCommerce for the World",
   "start_url": "./",
   "scope": "./",
