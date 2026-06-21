@@ -1711,6 +1711,11 @@
         min-width: 208px;
         max-width: 300px;
       }
+      /* Give the header room so all action icons (including the call buttons) always fit */
+      .hdr { gap: 8px; padding-left: 10px; padding-right: 8px; }
+      .hdr__actions { gap: 1px; }
+      .icon-btn { width: 36px; height: 36px; }
+      .icon-btn svg { width: 19px; height: 19px; }
     }
     .action-sheet__handle {
       width: 36px; height: 4px;
@@ -2149,7 +2154,7 @@
       </div>
 
       <div class="hdr__title-block" id="hdrTitleBlock">
-        <span class="hdr__name"><span class="hdr__name-text">IBI Group Messenger</span><span class="hdr__version" id="appVersion">v5.5</span></span>
+        <span class="hdr__name"><span class="hdr__name-text">IBI Group Messenger</span><span class="hdr__version" id="appVersion">v5.6</span></span>
         <span class="hdr__sub">
           <span class="hdr__dot" id="hdrDot"></span>
           <span id="hdrStatus">You: <strong id="hdrSenderName">—</strong></span>
@@ -5981,12 +5986,31 @@
       return 'https://' + JITSI_DOMAIN + '/' + encodeURIComponent(room) + '#' + cfg.join('&');
     }
 
+    // Open an external URL in a new tab. A programmatic <a target="_blank"> click is
+    // the most reliable way across mobile browsers AND installed PWAs (standalone mode),
+    // where window.open() is often silently blocked or simply does nothing. Falls back
+    // to window.open, then to a direct navigation as a last resort.
+    function openExternal(url) {
+      try {
+        const a = document.createElement('a');
+        a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer';
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => { try { a.remove(); } catch (_) {} }, 0);
+        return true;
+      } catch (_) {}
+      try { const w = window.open(url, '_blank'); if (w) return true; } catch (_) {}
+      try { window.location.href = url; return true; } catch (_) {}
+      return false;
+    }
+
     // Open a call. MUST run synchronously inside the click handler so the browser
-    // treats window.open as user-initiated (otherwise the pop-up gets blocked).
+    // treats the new tab as user-initiated (otherwise it gets blocked).
     function openCall(room, mode) {
       currentCallRoom = room;
-      const win = window.open(callUrl(room, mode), '_blank');
-      if (!win) showToast('Allow pop-ups for this site to open the call.', 'info', 5000);
+      const ok = openExternal(callUrl(room, mode));
+      if (!ok) showToast('Could not open the call. Please allow pop-ups for this site.', 'info', 5000);
     }
 
     // Start a new call: open it immediately, then post a "Join" card for the team.
@@ -6036,13 +6060,30 @@
     const callSheetCancel = $('callSheetCancel');
     const callSheetTitle = $('callSheetTitle');
 
-    // Distinct people in the channel (derived from chat history), excluding yourself
-    function callMembers() {
-      const map = new Map();
+    // A persistent roster of everyone ever seen in the channel, so the call chooser
+    // reliably lists your teammates even when the locally-loaded history is short
+    // (e.g. right after install, or when the recent messages are all your own).
+    const ROSTER_KEY = 'ibi-msgr-roster-v1';
+    function loadRoster() { try { return JSON.parse(localStorage.getItem(ROSTER_KEY)) || {}; } catch (_) { return {}; } }
+    function saveRoster(r) { try { localStorage.setItem(ROSTER_KEY, JSON.stringify(r)); } catch (_) {} }
+    function rememberSenders() {
+      const r = loadRoster(); let changed = false;
       history.forEach(m => {
-        if (!m.senderId || (identity && m.senderId === identity.senderId)) return;
-        const short = (m.sender || 'Member').split(',')[0].trim() || 'Member';
-        map.set(m.senderId, short);
+        if (!m.senderId || !m.sender) return;
+        const short = (m.sender || '').split(',')[0].trim();
+        if (short && r[m.senderId] !== short) { r[m.senderId] = short; changed = true; }
+      });
+      if (changed) saveRoster(r);
+      return r;
+    }
+    // Distinct teammates (everyone ever seen, minus yourself) for the call chooser
+    function callMembers() {
+      const r = rememberSenders();
+      const map = new Map();
+      Object.keys(r).forEach(id => {
+        if (identity && id === identity.senderId) return;
+        const n = (r[id] || '').trim();
+        if (n) map.set(id, n);
       });
       return Array.from(map.values());
     }
@@ -6052,8 +6093,7 @@
 
     function openCallSheet(mode) {
       if (!identity) { showIdentityModal(false); return; }
-      const members = callMembers();
-      if (!members.length) { startCall(mode, ''); return; } // nobody else known yet → call everyone
+      const members = callMembers(); // may be empty on a brand-new device — we still show "Everyone"
       callSheetTitle.textContent = (mode === 'video' ? 'Start a video call' : 'Start a voice call');
       let html = '<button type="button" class="action-sheet__item" data-call-target="">' + CALL_GROUP_IC + '<span>Everyone</span></button>';
       members.forEach(name => {
