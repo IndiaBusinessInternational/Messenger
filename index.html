@@ -2154,7 +2154,7 @@
       </div>
 
       <div class="hdr__title-block" id="hdrTitleBlock">
-        <span class="hdr__name"><span class="hdr__name-text">IBI Group Messenger</span><span class="hdr__version" id="appVersion">v5.9</span></span>
+        <span class="hdr__name"><span class="hdr__name-text">IBI Group Messenger</span><span class="hdr__version" id="appVersion">v6.0</span></span>
         <span class="hdr__sub">
           <span class="hdr__dot" id="hdrDot"></span>
           <span id="hdrStatus">You: <strong id="hdrSenderName">—</strong></span>
@@ -4052,8 +4052,14 @@
       return 'url("data:image/svg+xml,' + encodeURIComponent(svg) + '")';
     }
 
+    // Wrap a full-scene SVG (royalty-free, embedded — no external host) as a CSS url().
+    function sceneUrl(inner) {
+      const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="640" viewBox="0 0 400 640" preserveAspectRatio="xMidYMid slice">' + inner + '</svg>';
+      return 'url("data:image/svg+xml,' + encodeURIComponent(svg) + '")';
+    }
+
     // All wallpapers, grouped. Patterns are generated SVG (royalty-free, theme-aware);
-    // scenes are CSS gradients; photos are royalty-free images from Lorem Picsum.
+    // gradients are CSS gradients; nature scenes are embedded royalty-free SVG art (no host).
     const WP_PRESETS = [
       // ---- Solid colours ----
       { id: 'plain',    group: 'solid', label: 'Plain',    light: '#e8edf2', dark: '#0e131a' },
@@ -4096,15 +4102,23 @@
       { id: 's-midnight',group: 'scene', label: 'Midnight', grad: 'linear-gradient(160deg,#1a2030,#0e1320)' },
       { id: 's-cyanglow',group: 'scene', label: 'Cyan Glow',grad: 'linear-gradient(160deg,#cdeffc,#7fd6f0 60%,#00b4e6)' },
 
-      // ---- Photo scenes (royalty-free, Lorem Picsum) ----
-      { id: 'ph-1', group: 'photo', label: 'Photo 1', pid: 1018 },
-      { id: 'ph-2', group: 'photo', label: 'Photo 2', pid: 1015 },
-      { id: 'ph-3', group: 'photo', label: 'Photo 3', pid: 1019 },
-      { id: 'ph-4', group: 'photo', label: 'Photo 4', pid: 1039 },
-      { id: 'ph-5', group: 'photo', label: 'Photo 5', pid: 1036 },
-      { id: 'ph-6', group: 'photo', label: 'Photo 6', pid: 1043 },
-      { id: 'ph-7', group: 'photo', label: 'Photo 7', pid: 1059 },
-      { id: 'ph-8', group: 'photo', label: 'Photo 8', pid: 1061 }
+      // ---- Nature sceneries (royalty-free, embedded SVG — no external host) ----
+      { id: 'sc-sunset', group: 'scenery', label: 'Sunset Peaks', scene: '<defs><linearGradient id="g" x2="0" y2="1"><stop offset="0" stop-color="#3a1f5c"/><stop offset=".45" stop-color="#a8456e"/><stop offset=".72" stop-color="#ef7d52"/><stop offset="1" stop-color="#ffce7a"/></linearGradient></defs><rect width="400" height="640" fill="url(#g)"/><circle cx="200" cy="415" r="55" fill="#ffe2a4" opacity=".9"/><path d="M0 640V475l72-58 82 60 92-78 86 64 68-42V640Z" fill="#5b3169" opacity=".7"/><path d="M0 640V548l96-62 92 60 96-66 86 54 34-20V640Z" fill="#241634"/>' },
+      { id: 'sc-ocean', group: 'scenery', label: 'Ocean Sunset', scene: '<defs><linearGradient id="g" x2="0" y2="1"><stop offset="0" stop-color="#ffc176"/><stop offset="1" stop-color="#ff8a66"/></linearGradient></defs><rect width="400" height="640" fill="url(#g)"/><circle cx="200" cy="300" r="48" fill="#fff1cc"/><rect y="330" width="400" height="310" fill="#2f6f93"/><rect y="330" width="400" height="310" fill="#173d57" opacity=".4"/><path d="M180 330h40l34 310h-108Z" fill="#ffe6b0" opacity=".28"/><g stroke="#ffe6b0" stroke-width="3" opacity=".25"><path d="M170 380h60"/><path d="M150 460h100"/><path d="M134 540h132"/></g>' },
+      { id: 'sc-beach', group: 'scenery', label: 'Beach Day', scene: '<defs><linearGradient id="g" x2="0" y2="1"><stop offset="0" stop-color="#7fc8e8"/><stop offset="1" stop-color="#cfeaf4"/></linearGradient></defs><rect width="400" height="640" fill="url(#g)"/><circle cx="312" cy="120" r="40" fill="#fff5d0" opacity=".9"/><rect y="330" width="400" height="160" fill="#3f9fc4"/><path d="M0 470h400v50q-100 16-200 0t-200 0Z" fill="#357f9f"/><rect y="486" width="400" height="160" fill="#e3cfa0"/><path d="M0 486q100-16 200 0t200 0v10q-100 16-200 0t-200 0Z" fill="#ffffff" opacity=".45"/>' },
+      { id: 'sc-forest', group: 'scenery', label: 'Forest Hills', scene: '<defs><linearGradient id="g" x2="0" y2="1"><stop offset="0" stop-color="#bfe3c4"/><stop offset="1" stop-color="#6fc08a"/></linearGradient></defs><rect width="400" height="640" fill="url(#g)"/><circle cx="310" cy="110" r="38" fill="#fffce0" opacity=".85"/><path d="M0 640V430q100-50 200-20t200 10V640Z" fill="#4ea06a" opacity=".8"/><path d="M0 640V500q120-40 220 0t180 10V640Z" fill="#2f7048" opacity=".9"/><path d="M0 640V560q140-30 240 6t160 6V640Z" fill="#1d4d30"/>' },
+      { id: 'sc-pine', group: 'scenery', label: 'Pine Forest', scene: '<defs><linearGradient id="g" x2="0" y2="1"><stop offset="0" stop-color="#1d3a5c"/><stop offset=".6" stop-color="#4a7a96"/><stop offset="1" stop-color="#b8d8cc"/></linearGradient></defs><rect width="400" height="640" fill="url(#g)"/><circle cx="200" cy="170" r="32" fill="#eef6f2" opacity=".8"/><g fill="#16304a"><path d="M40 560l28 60H12zM40 590l24 50H16z"/><path d="M120 540l32 80H88zM120 575l28 65H92z"/><path d="M210 555l30 65H180zM210 588l26 52H184z"/><path d="M300 535l34 85H266zM300 572l30 68H270z"/><path d="M372 560l26 60h-52z"/></g><rect y="616" width="400" height="24" fill="#0f2438"/>' },
+      { id: 'sc-aurora', group: 'scenery', label: 'Northern Lights', scene: '<defs><linearGradient id="g" x2="0" y2="1"><stop offset="0" stop-color="#0a1230"/><stop offset="1" stop-color="#16365a"/></linearGradient><linearGradient id="a" x2="0" y2="1"><stop offset="0" stop-color="#56f0b0" stop-opacity="0"/><stop offset=".5" stop-color="#56f0b0" stop-opacity=".55"/><stop offset="1" stop-color="#3fa0d8" stop-opacity="0"/></linearGradient></defs><rect width="400" height="640" fill="url(#g)"/><circle cx="70" cy="80" r="1.4" fill="#fff"/><circle cx="150" cy="50" r="1" fill="#fff"/><circle cx="300" cy="90" r="1.5" fill="#fff"/><circle cx="350" cy="40" r="1" fill="#fff"/><circle cx="240" cy="120" r="1.1" fill="#fff"/><path d="M-20 260q120-120 220-40t240-30v160q-140-40-240 20T-20 380Z" fill="url(#a)"/><path d="M-20 330q140-90 240-30t220-50v140q-120-30-230 30T-20 430Z" fill="url(#a)" opacity=".7"/><path d="M0 640V500l90-40 100 30 110-40 100 30V640Z" fill="#0a1a30"/>' },
+      { id: 'sc-stars', group: 'scenery', label: 'Starry Night', scene: '<defs><linearGradient id="g" x2="0" y2="1"><stop offset="0" stop-color="#0b1026"/><stop offset=".7" stop-color="#1b2552"/><stop offset="1" stop-color="#34407e"/></linearGradient></defs><rect width="400" height="640" fill="url(#g)"/><g fill="#fff"><circle cx="40" cy="60" r="1.5"/><circle cx="90" cy="120" r="1"/><circle cx="150" cy="40" r="1.6"/><circle cx="210" cy="90" r="1"/><circle cx="260" cy="50" r="1.4"/><circle cx="320" cy="110" r="1"/><circle cx="360" cy="60" r="1.5"/><circle cx="120" cy="180" r="1"/><circle cx="300" cy="170" r="1.2"/><circle cx="200" cy="150" r=".9"/><circle cx="60" cy="200" r="1.1"/></g><circle cx="320" cy="120" r="34" fill="#f4f0d8" opacity=".95"/><circle cx="332" cy="112" r="34" fill="#1b2552" opacity=".9"/><path d="M0 640V520q120-40 200-10t200 0V640Z" fill="#11183a"/>' },
+      { id: 'sc-moon', group: 'scenery', label: 'Moonlit Hills', scene: '<defs><linearGradient id="g" x2="0" y2="1"><stop offset="0" stop-color="#16244a"/><stop offset=".6" stop-color="#2c4a78"/><stop offset="1" stop-color="#5a86b0"/></linearGradient></defs><rect width="400" height="640" fill="url(#g)"/><circle cx="290" cy="150" r="46" fill="#f0f4ff" opacity=".9"/><circle cx="290" cy="150" r="60" fill="#f0f4ff" opacity=".12"/><path d="M0 640V470q110-46 210-12t190 8V640Z" fill="#243d66" opacity=".85"/><path d="M0 640V540q130-34 220 6t180 4V640Z" fill="#15243f"/>' },
+      { id: 'sc-desert', group: 'scenery', label: 'Desert Dunes', scene: '<defs><linearGradient id="g" x2="0" y2="1"><stop offset="0" stop-color="#f6c98f"/><stop offset=".5" stop-color="#f0a87a"/><stop offset="1" stop-color="#e98f74"/></linearGradient></defs><rect width="400" height="640" fill="url(#g)"/><circle cx="130" cy="180" r="42" fill="#fff0d0" opacity=".9"/><path d="M0 640V470q140 60 400-30v200Z" fill="#e0a070"/><path d="M0 640V540q160 50 400-26v126Z" fill="#c9824f" opacity=".9"/><path d="M0 640V590q180 30 400-14v64Z" fill="#a8652f"/>' },
+      { id: 'sc-lake', group: 'scenery', label: 'Mountain Lake', scene: '<defs><linearGradient id="g" x2="0" y2="1"><stop offset="0" stop-color="#a9d8ee"/><stop offset="1" stop-color="#dff0f8"/></linearGradient></defs><rect width="400" height="640" fill="url(#g)"/><circle cx="300" cy="120" r="34" fill="#fff6da" opacity=".85"/><path d="M0 360l90-120 80 80 70-110 90 110 70-50V360Z" fill="#5f7e9a"/><path d="M0 360l90-120 80 80 70-110 90 110 70-50V360Z" fill="#3f5e7a" opacity=".4"/><rect y="360" width="400" height="280" fill="#6f9ec0"/><path d="M0 360l90 120 80-80 70 110 90-110 70 50V360Z" fill="#5f8eb0" opacity=".55"/><rect y="360" width="400" height="280" fill="#5a90b8" opacity=".25"/>' },
+      { id: 'sc-snow', group: 'scenery', label: 'Snowy Peaks', scene: '<defs><linearGradient id="g" x2="0" y2="1"><stop offset="0" stop-color="#7fa8d8"/><stop offset="1" stop-color="#cfe0f2"/></linearGradient></defs><rect width="400" height="640" fill="url(#g)"/><circle cx="320" cy="110" r="34" fill="#fffefa" opacity=".9"/><path d="M0 640V440l90-130 70 100 60-150 90 160 90-90V640Z" fill="#e8eef6"/><path d="M90 310l-30 44 30 8 24-30Z" fill="#c4d2e2"/><path d="M310 230l-30 80 34 8 24-50Z" fill="#c4d2e2"/><path d="M0 640V520q120-30 210 0t190 0V640Z" fill="#b8c8dc"/>' },
+      { id: 'sc-misty', group: 'scenery', label: 'Misty Mountains', scene: '<defs><linearGradient id="g" x2="0" y2="1"><stop offset="0" stop-color="#cdd9e2"/><stop offset="1" stop-color="#eef2f5"/></linearGradient></defs><rect width="400" height="640" fill="url(#g)"/><path d="M0 380l110-120 90 120 80-90 110 110V640H0Z" fill="#6f8496" opacity=".35"/><path d="M0 460l130-110 100 110 90-70 80 90V640H0Z" fill="#56708a" opacity=".5"/><path d="M0 540l120-90 110 90 80-50 90 60V640H0Z" fill="#3e5870" opacity=".7"/><rect y="430" width="400" height="40" fill="#eef2f5" opacity=".45"/><rect y="520" width="400" height="36" fill="#eef2f5" opacity=".35"/>' },
+      { id: 'sc-sunrise', group: 'scenery', label: 'Sunrise Valley', scene: '<defs><linearGradient id="g" x2="0" y2="1"><stop offset="0" stop-color="#ffd9a8"/><stop offset=".5" stop-color="#ffb0a0"/><stop offset="1" stop-color="#d89ab0"/></linearGradient></defs><rect width="400" height="640" fill="url(#g)"/><circle cx="200" cy="330" r="46" fill="#fff4d8" opacity=".95"/><circle cx="200" cy="330" r="64" fill="#fff4d8" opacity=".18"/><path d="M0 640V400l140 120V640Z" fill="#9a6f8a" opacity=".7"/><path d="M400 640V400L260 520V640Z" fill="#9a6f8a" opacity=".7"/><path d="M0 640V480l150 110V640Z" fill="#5f4360"/><path d="M400 640V480L250 590V640Z" fill="#5f4360"/>' },
+      { id: 'sc-lavender', group: 'scenery', label: 'Lavender Field', scene: '<defs><linearGradient id="g" x2="0" y2="1"><stop offset="0" stop-color="#9fd0e8"/><stop offset=".55" stop-color="#d8c9e6"/><stop offset="1" stop-color="#8f6fb0"/></linearGradient></defs><rect width="400" height="640" fill="url(#g)"/><circle cx="300" cy="120" r="34" fill="#fff6da" opacity=".85"/><g stroke="#6f4f96" stroke-width="22" opacity=".7"><path d="M-20 420H420"/><path d="M-20 470H420"/><path d="M-20 520H420"/><path d="M-20 570H420"/><path d="M-20 620H420"/></g><g stroke="#5a3f86" stroke-width="10" opacity=".5"><path d="M-20 445H420"/><path d="M-20 545H420"/><path d="M-20 620H420"/></g>' },
+      { id: 'sc-autumn', group: 'scenery', label: 'Autumn Hills', scene: '<defs><linearGradient id="g" x2="0" y2="1"><stop offset="0" stop-color="#ffe1b0"/><stop offset="1" stop-color="#ffd08a"/></linearGradient></defs><rect width="400" height="640" fill="url(#g)"/><circle cx="310" cy="120" r="36" fill="#fff6dc" opacity=".85"/><path d="M0 640V440q100-46 200-16t200 6V640Z" fill="#e8964a" opacity=".85"/><path d="M0 640V510q120-40 220 0t180 8V640Z" fill="#c46a32" opacity=".92"/><path d="M0 640V570q140-30 240 6t160 4V640Z" fill="#8f4520"/>' },
+      { id: 'sc-meadow', group: 'scenery', label: 'Rolling Meadow', scene: '<defs><linearGradient id="g" x2="0" y2="1"><stop offset="0" stop-color="#6fb8e8"/><stop offset="1" stop-color="#bfe2f4"/></linearGradient></defs><rect width="400" height="640" fill="url(#g)"/><circle cx="320" cy="100" r="36" fill="#fff8d8" opacity=".9"/><ellipse cx="100" cy="120" rx="50" ry="20" fill="#fff" opacity=".8"/><ellipse cx="150" cy="130" rx="40" ry="16" fill="#fff" opacity=".7"/><path d="M0 640V450q110-50 210-14t190 6V640Z" fill="#7cc06a" opacity=".85"/><path d="M0 640V520q130-36 220 4t180 2V640Z" fill="#4f9a44" opacity=".92"/><path d="M0 640V580q140-26 240 8t160 2V640Z" fill="#357024"/>' }
     ];
 
     function wpPatternColor(dark, accent) {
@@ -4112,7 +4126,6 @@
       return dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.07)';
     }
     function wpBaseColor(dark) { return dark ? '#0e131a' : '#e8edf2'; }
-    function photoUrl(pid, thumb) { return 'https://picsum.photos/id/' + pid + (thumb ? '/200/300' : '/700/1200'); }
 
     // Returns {color, image, size, repeat} for a preset in the current theme.
     function presetStyle(p, dark, thumb) {
@@ -4125,9 +4138,9 @@
       if (p.group === 'scene') {
         return { color: '#222', image: p.grad, size: 'cover', repeat: 'no-repeat' };
       }
-      if (p.group === 'photo') {
-        const scrim = dark ? 'rgba(8,12,18,0.50)' : 'rgba(255,255,255,0.16)';
-        return { color: '#222', image: 'linear-gradient(' + scrim + ',' + scrim + '), url("' + photoUrl(p.pid, thumb) + '")', size: 'cover', repeat: 'no-repeat' };
+      if (p.group === 'scenery') {
+        const scrim = dark ? 'rgba(8,12,18,0.42)' : 'rgba(255,255,255,0.12)';
+        return { color: '#1a2230', image: 'linear-gradient(' + scrim + ',' + scrim + '),' + sceneUrl(p.scene), size: 'cover', repeat: 'no-repeat' };
       }
       return { color: wpBaseColor(dark), image: 'none', size: 'auto', repeat: 'repeat' };
     }
@@ -4184,9 +4197,9 @@
 
     const WP_GROUPS = [
       { key: 'solid',   title: 'Colours' },
-      { key: 'pattern', title: 'Patterns' },
-      { key: 'scene',   title: 'Scenes' },
-      { key: 'photo',   title: 'Photo Scenes' }
+      { key: 'scenery', title: 'Nature Scenes' },
+      { key: 'scene',   title: 'Gradients' },
+      { key: 'pattern', title: 'Patterns' }
     ];
     const WP_CHECK = '<span class="wp-swatch__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>';
 
@@ -4228,15 +4241,8 @@
         html += '<div class="wp-group-title">' + g.title + '</div><div class="wp-grid">';
         items.forEach(p => {
           const active = cur === p.id;
-          if (p.group === 'photo') {
-            // Use an <img> so a failed load can hide the tile
-            html += '<div class="wp-swatch wp-swatch--photo' + (active ? ' wp-swatch--active' : '') + '" data-wp-id="' + p.id + '">'
-                  + '<img class="wp-swatch__img" src="' + photoUrl(p.pid, true) + '" alt="' + p.label + '" referrerpolicy="no-referrer" loading="lazy" onerror="this.closest(\'.wp-swatch\').style.display=\'none\'" />'
-                  + WP_CHECK + '<span class="wp-swatch__label">' + p.label + '</span></div>';
-          } else {
-            html += '<div class="wp-swatch' + (active ? ' wp-swatch--active' : '') + '" data-wp-id="' + p.id + '" style="' + swatchInlineStyle(p, dark) + '">'
-                  + WP_CHECK + '<span class="wp-swatch__label">' + p.label + '</span></div>';
-          }
+          html += '<div class="wp-swatch' + (active ? ' wp-swatch--active' : '') + '" data-wp-id="' + p.id + '" style="' + swatchInlineStyle(p, dark) + '">'
+                + WP_CHECK + '<span class="wp-swatch__label">' + p.label + '</span></div>';
         });
         html += '</div>';
       });
