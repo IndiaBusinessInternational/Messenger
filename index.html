@@ -2154,7 +2154,7 @@
       </div>
 
       <div class="hdr__title-block" id="hdrTitleBlock">
-        <span class="hdr__name"><span class="hdr__name-text">IBI Group Messenger</span><span class="hdr__version" id="appVersion">v6.0</span></span>
+        <span class="hdr__name"><span class="hdr__name-text">IBI Group Messenger</span><span class="hdr__version" id="appVersion">v6.1</span></span>
         <span class="hdr__sub">
           <span class="hdr__dot" id="hdrDot"></span>
           <span id="hdrStatus">You: <strong id="hdrSenderName">—</strong></span>
@@ -4049,13 +4049,14 @@
     // SVG pattern → data-URI background (CC is replaced with the theme colour)
     function svgUrl(inner, w, h, color) {
       const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '">' + inner.replace(/CC/g, color) + '</svg>';
-      return 'url("data:image/svg+xml,' + encodeURIComponent(svg) + '")';
+      return "url('data:image/svg+xml," + encodeURIComponent(svg) + "')";
     }
 
     // Wrap a full-scene SVG (royalty-free, embedded — no external host) as a CSS url().
+    // Single-quoted so it survives inside an inline style="..." attribute (the swatch previews).
     function sceneUrl(inner) {
       const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="640" viewBox="0 0 400 640" preserveAspectRatio="xMidYMid slice">' + inner + '</svg>';
-      return 'url("data:image/svg+xml,' + encodeURIComponent(svg) + '")';
+      return "url('data:image/svg+xml," + encodeURIComponent(svg) + "')";
     }
 
     // All wallpapers, grouped. Patterns are generated SVG (royalty-free, theme-aware);
