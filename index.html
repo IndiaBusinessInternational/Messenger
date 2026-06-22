@@ -2154,7 +2154,7 @@
       </div>
 
       <div class="hdr__title-block" id="hdrTitleBlock">
-        <span class="hdr__name"><span class="hdr__name-text">IBI Group Messenger</span><span class="hdr__version" id="appVersion">v5.8</span></span>
+        <span class="hdr__name"><span class="hdr__name-text">IBI Group Messenger</span><span class="hdr__version" id="appVersion">v5.9</span></span>
         <span class="hdr__sub">
           <span class="hdr__dot" id="hdrDot"></span>
           <span id="hdrStatus">You: <strong id="hdrSenderName">—</strong></span>
@@ -6049,7 +6049,15 @@
     // that sign-in is blocked inside a cross-origin iframe — which is exactly why the
     // old in-app embed hung on "Connecting…". A real tab avoids that entirely.
     function callUrl(room, mode) {
-      const cfg = ['config.disableDeepLinking=true'];
+      // Skip the "prejoin" preview screen. With it, meet.jit.si tries to show your
+      // camera before joining, and on mobile that step hangs when the camera isn't
+      // immediately available — so video calls "open but never connect". Joining
+      // directly lets the call connect first; the camera then turns on inside the call.
+      const cfg = [
+        'config.disableDeepLinking=true',
+        'config.prejoinPageEnabled=false',
+        'config.prejoinConfig.enabled=false'
+      ];
       if (mode !== 'video') cfg.push('config.startWithVideoMuted=true'); // voice → camera off
       return 'https://' + JITSI_DOMAIN + '/' + encodeURIComponent(room) + '#' + cfg.join('&');
     }
