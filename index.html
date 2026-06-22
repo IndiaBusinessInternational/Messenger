@@ -111,12 +111,14 @@
       flex: 0 0 auto;
       background: var(--header-bg);
       color: var(--header-text);
-      display: flex; align-items: center; gap: 12px;
-      padding: 10px 14px;
-      padding-top: max(10px, env(safe-area-inset-top));
+      display: flex; flex-direction: column; align-items: stretch; gap: 5px;
+      padding: 8px 14px;
+      padding-top: max(8px, env(safe-area-inset-top));
       border-bottom: 1px solid rgba(0, 197, 255, 0.18);
       z-index: 10;
     }
+    .hdr__main { display: flex; align-items: center; gap: 12px; }
+    .hdr__bar  { display: flex; align-items: center; gap: 8px; }
     .hdr__avatar {
       flex-shrink: 0;
       width: 38px; height: 38px;
@@ -131,7 +133,7 @@
     .hdr__name {
       display: flex; align-items: center; min-width: 0;
       font-family: 'Roboto', sans-serif;
-      font-size: 16px; font-weight: 700;
+      font-size: 18px; font-weight: 700;
       color: var(--header-text);
       letter-spacing: 0.2px; margin: 0;
     }
@@ -140,7 +142,7 @@
       font-family: 'Roboto', sans-serif;
       font-size: 11px; font-weight: 400;
       color: rgba(0, 197, 255, 0.7);
-      margin-top: 2px; letter-spacing: 0.3px;
+      margin-top: 0; letter-spacing: 0.3px; flex: 1; min-width: 0;
       display: flex; align-items: center; gap: 5px;
     }
     .hdr__dot {
@@ -2141,6 +2143,7 @@
   <div class="app">
     <!-- =================== HEADER =================== -->
     <header class="hdr">
+      <div class="hdr__main" id="hdrMain">
       <div class="hdr__avatar" id="hdrAvatar" aria-hidden="true">
         <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
           <g fill="#00c5ff">
@@ -2154,12 +2157,14 @@
       </div>
 
       <div class="hdr__title-block" id="hdrTitleBlock">
-        <span class="hdr__name"><span class="hdr__name-text">IBI Group Messenger</span><span class="hdr__version" id="appVersion">v6.2</span></span>
+        <span class="hdr__name"><span class="hdr__name-text">IBI Group Messenger</span><span class="hdr__version" id="appVersion">v6.3</span></span>
+      </div>
+      </div>
+      <div class="hdr__bar" id="hdrBar">
         <span class="hdr__sub">
           <span class="hdr__dot" id="hdrDot"></span>
           <span id="hdrStatus">You: <strong id="hdrSenderName">—</strong></span>
         </span>
-      </div>
 
       <div class="hdr__actions" id="hdrActions">
         <button type="button" class="icon-btn" id="voiceCallBtn" aria-label="Voice call" title="Voice call">
@@ -2228,6 +2233,7 @@
             </button>
           </div>
         </div>
+      </div>
       </div>
 
       <!-- Search bar — hidden until searchToggle is tapped (JS-controlled, not CSS) -->
@@ -3859,9 +3865,8 @@
     // Search — WhatsApp-style header overlay with match navigation
     // =========================================================
     const hdrEl       = document.querySelector('.hdr');
-    const hdrAvatar   = $('hdrAvatar');
-    const hdrTitleBlock = $('hdrTitleBlock');
-    const hdrActionsEl = $('hdrActions');
+    const hdrMain = $('hdrMain');
+    const hdrBar  = $('hdrBar');
     const hdrSearchBar = $('hdrSearchBar');
     const searchToggle = $('searchToggle');
     const searchInput  = $('searchInput');
@@ -3877,9 +3882,8 @@
       searchMatches = [];
       currentMatchIndex = -1;
       // Hide normal header, show search bar (JS-driven — works reliably on all mobile browsers)
-      hdrAvatar.style.display   = 'none';
-      hdrTitleBlock.style.display = 'none';
-      hdrActionsEl.style.display  = 'none';
+      hdrMain.style.display = 'none';
+      hdrBar.style.display  = 'none';
       hdrSearchBar.style.display  = 'flex';
       searchInput.value = '';
       updateSearchUI();
@@ -3895,9 +3899,8 @@
       searchTerm = '';
       searchMatches = [];
       currentMatchIndex = -1;
-      hdrAvatar.style.display    = '';
-      hdrTitleBlock.style.display = '';
-      hdrActionsEl.style.display  = '';
+      hdrMain.style.display = '';
+      hdrBar.style.display  = '';
       hdrSearchBar.style.display  = 'none';
       searchInput.value = '';
       try { searchInput.blur(); } catch(_) {}
