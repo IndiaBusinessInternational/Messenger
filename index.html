@@ -2154,7 +2154,7 @@
       </div>
 
       <div class="hdr__title-block" id="hdrTitleBlock">
-        <span class="hdr__name"><span class="hdr__name-text">IBI Group Messenger</span><span class="hdr__version" id="appVersion">v5.7</span></span>
+        <span class="hdr__name"><span class="hdr__name-text">IBI Group Messenger</span><span class="hdr__version" id="appVersion">v5.8</span></span>
         <span class="hdr__sub">
           <span class="hdr__dot" id="hdrDot"></span>
           <span id="hdrStatus">You: <strong id="hdrSenderName">—</strong></span>
@@ -3649,6 +3649,7 @@
       if (callEl) {
         const joinBtn = callEl.querySelector('.msg__call-join');
         const join = () => {
+          try { stopRingtone(); } catch (_) {}
           const room = callEl.dataset.callRoom;
           if (room) openCall(room, callEl.dataset.callMode);
         };
@@ -4343,6 +4344,73 @@
           t += 0.34;
         }
       } catch (_) {}
+    }
+
+    // A short, pleasant "new message" ding (two quick rising notes)
+    function playDing() {
+      try {
+        _audioCtx = _audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+        if (_audioCtx.state === 'suspended') _audioCtx.resume();
+        const ctx = _audioCtx; let t = ctx.currentTime;
+        [880, 1175].forEach((f) => {
+          const osc = ctx.createOscillator(), g = ctx.createGain();
+          osc.type = 'sine'; osc.frequency.value = f;
+          g.gain.setValueAtTime(0.0001, t);
+          g.gain.exponentialRampToValueAtTime(0.20, t + 0.015);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+          osc.connect(g); g.connect(ctx.destination);
+          osc.start(t); osc.stop(t + 0.2);
+          t += 0.16;
+        });
+      } catch (_) {}
+    }
+
+    // Looping ringtone for an incoming call — plays while the app is open.
+    let _ringTimer = null, _ringUntil = 0, _ringDismiss = null;
+    function _ringOnce() {
+      try {
+        _audioCtx = _audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+        if (_audioCtx.state === 'suspended') _audioCtx.resume();
+        const ctx = _audioCtx; let t = ctx.currentTime;
+        for (let b = 0; b < 2; b++) { // classic "ring-ring" — two warbling bursts
+          const osc = ctx.createOscillator(), g = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(480, t);
+          osc.frequency.setValueAtTime(620, t + 0.2);
+          g.gain.setValueAtTime(0.0001, t);
+          g.gain.exponentialRampToValueAtTime(0.22, t + 0.03);
+          g.gain.setValueAtTime(0.22, t + 0.37);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + 0.4);
+          osc.connect(g); g.connect(ctx.destination);
+          osc.start(t); osc.stop(t + 0.42);
+          t += 0.5;
+        }
+      } catch (_) {}
+    }
+    function startRingtone(maxMs) {
+      stopRingtone();
+      _ringUntil = Date.now() + (maxMs || 30000);
+      _ringOnce();
+      _ringTimer = setInterval(() => {
+        if (Date.now() > _ringUntil) { stopRingtone(); return; }
+        _ringOnce();
+      }, 2600);
+      _ringDismiss = () => stopRingtone(); // a tap anywhere silences the ring
+      setTimeout(() => { try { document.addEventListener('click', _ringDismiss, { once: true }); } catch (_) {} }, 300);
+    }
+    function stopRingtone() {
+      if (_ringTimer) { clearInterval(_ringTimer); _ringTimer = null; }
+      if (_ringDismiss) { try { document.removeEventListener('click', _ringDismiss); } catch (_) {} _ringDismiss = null; }
+    }
+
+    // In-app sound for freshly arrived messages/calls (works while the app is open;
+    // complements the system popup, which fires when the app is backgrounded).
+    function alertIncoming(list) {
+      if (!list || !list.length) return;
+      const others = list.filter(m => !identity || m.senderId !== identity.senderId);
+      if (!others.length) return;
+      if (others.some(m => m.attachment && m.attachment.kind === 'call')) startRingtone(30000);
+      else playDing();
     }
 
     function notifPreview(msg) {
@@ -6336,7 +6404,19 @@
     }
     messageInput.addEventListener('input', () => { autoGrow(); updateSendButton(); });
     messageInput.addEventListener('keydown', (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); sendMessage(); }
+      if (e.key !== 'Enter' || e.isComposing || e.keyCode === 229) return; // ignore IME composition (e.g. Tamil input)
+      if (e.altKey || e.shiftKey) {
+        // Alt+Enter (or Shift+Enter) → insert a newline at the cursor
+        e.preventDefault();
+        const s = messageInput.selectionStart, en = messageInput.selectionEnd, v = messageInput.value;
+        messageInput.value = v.slice(0, s) + '\n' + v.slice(en);
+        messageInput.selectionStart = messageInput.selectionEnd = s + 1;
+        autoGrow(); updateSendButton();
+        return;
+      }
+      // Plain Enter (or Ctrl/Cmd+Enter) → send the message
+      e.preventDefault();
+      sendMessage();
     });
 
     // =========================================================
@@ -7121,7 +7201,8 @@
         if (r.added > 0 || r.deleted > 0) {
           if (searchActive && searchTerm) performSearch(); else renderChat();
         }
-        maybeNotify(r.newIncoming);            // ← Tier-1 notifications
+        maybeNotify(r.newIncoming);            // ← Tier-1 notifications (popup when backgrounded)
+        alertIncoming(r.newIncoming);          // ← in-app ding / call ringtone (when app is open)
         markMessagesAsSeen(data.messages); // fire-and-forget read receipts
       }, POLL_INTERVAL_MS);
     }
