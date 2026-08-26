@@ -1896,9 +1896,23 @@
       border-radius: 14px;
       width: 100%;
       max-width: 380px;
-      padding: 24px;
+      /* Head and actions stay pinned; only the middle scrolls, so the
+         Continue button is always reachable however many roles are listed. */
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      max-height: calc(100dvh - 40px);
+      padding: 24px 0;
       box-shadow: var(--shadow-elevated);
       animation: modalIn 0.25s ease-out;
+    }
+    .modal__head { flex: 0 0 auto; padding: 0 24px; }
+    .modal__body {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      padding: 0 24px;
     }
     @keyframes modalIn {
       from { opacity: 0; transform: translateY(12px) scale(0.96); }
@@ -2114,7 +2128,12 @@
       margin: 0;
       line-height: 1.45;
     }
-    .modal__actions { display: flex; gap: 8px; }
+    .modal__actions {
+      display: flex; gap: 8px;
+      flex: 0 0 auto;
+      padding: 14px 24px 0;
+      border-top: 1px solid var(--border);
+    }
     .btn {
       font-family: 'Roboto', sans-serif;
       font-size: 15px; font-weight: 500;
@@ -2168,7 +2187,7 @@
       </div>
 
       <div class="hdr__title-block" id="hdrTitleBlock">
-        <span class="hdr__name"><span class="hdr__name-text">IBI Group Messenger</span><span class="hdr__version" id="appVersion">v6.5</span></span>
+        <span class="hdr__name"><span class="hdr__name-text">IBI Group Messenger</span><span class="hdr__version" id="appVersion">v6.6</span></span>
       </div>
       </div>
       <div class="hdr__bar" id="hdrBar">
@@ -2558,32 +2577,40 @@
   <!-- Identity modal -->
   <div class="modal-backdrop" id="identityBackdrop">
     <div class="modal" role="dialog" aria-labelledby="identityTitle" aria-modal="true">
-      <div class="modal__icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-          <circle cx="12" cy="7" r="4"/>
-        </svg>
+      <div class="modal__head">
+        <div class="modal__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+        </div>
+        <h2 class="modal__title" id="identityTitle">Who's using this device?</h2>
+        <p class="modal__intro">Your name appears on every message you send so others can tell who said what.</p>
       </div>
-      <h2 class="modal__title" id="identityTitle">Who's using this device?</h2>
-      <p class="modal__intro">Your name appears on every message you send so others can tell who said what.</p>
-      <div class="modal__roles" id="identityRoles">
-        <button type="button" class="modal__role" data-name="Dr T Sasimurugan ME.PhD., Founder, IBI">
-          <strong>Dr T Sasimurugan</strong>
-          <span>ME.PhD. · Founder, IBI</span>
-        </button>
-        <button type="button" class="modal__role" data-name="S. Aswin, IBI Manager- Packaging &amp; Despatch">
-          <strong>S. Aswin</strong>
-          <span>IBI Manager · Packaging &amp; Despatch</span>
-        </button>
-        <button type="button" class="modal__role" data-name="M.Ajay, IBI Manager - Cataloguing &amp; Order Processing">
-          <strong>M. Ajay</strong>
-          <span>IBI Manager · Cataloguing &amp; Order Processing</span>
-        </button>
+      <div class="modal__body">
+        <div class="modal__roles" id="identityRoles">
+          <button type="button" class="modal__role" data-name="Dr T Sasimurugan ME.PhD., Founder, IBI">
+            <strong>Dr T Sasimurugan</strong>
+            <span>ME.PhD. · Founder, IBI</span>
+          </button>
+          <button type="button" class="modal__role" data-name="S. Aswin, IBI Manager- Packaging &amp; Despatch">
+            <strong>S. Aswin</strong>
+            <span>IBI Manager · Packaging &amp; Despatch</span>
+          </button>
+          <button type="button" class="modal__role" data-name="M.Ajay, IBI Manager - Cataloguing &amp; Order Processing">
+            <strong>M. Ajay</strong>
+            <span>IBI Manager · Cataloguing &amp; Order Processing</span>
+          </button>
+          <button type="button" class="modal__role" data-name="S. Akash, IBI Assistant Manager - Cataloguing">
+            <strong>S. Akash</strong>
+            <span>IBI Assistant Manager · Cataloguing</span>
+          </button>
+        </div>
+        <p class="modal__hint">Tap your role, or type a different name below.</p>
+        <input type="text" id="identityInput" class="modal__field" placeholder="Or enter a custom name…" maxlength="120" autocomplete="off" />
+        <input type="tel" id="phoneInput" class="modal__field" placeholder="Phone number (e.g. +91 9876543210)" maxlength="20" autocomplete="tel" inputmode="tel" />
+        <p class="modal__phone-hint">Optional — needed so your team can call or WhatsApp you.</p>
       </div>
-      <p class="modal__hint">Tap your role, or type a different name below.</p>
-      <input type="text" id="identityInput" class="modal__field" placeholder="Or enter a custom name…" maxlength="120" autocomplete="off" />
-      <input type="tel" id="phoneInput" class="modal__field" placeholder="Phone number (e.g. +91 9876543210)" maxlength="20" autocomplete="tel" inputmode="tel" />
-      <p class="modal__phone-hint">Optional — needed so your team can call or WhatsApp you.</p>
       <div class="modal__actions">
         <button type="button" class="btn btn--ghost" id="identityCancel" hidden>Cancel</button>
         <button type="button" class="btn btn--primary" id="identitySave" disabled>Continue</button>

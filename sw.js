@@ -2,12 +2,16 @@
  * Minimal SW: enables PWA installability + offline shell caching.
  * Network-first for all requests so live chat data is never stale.
  */
-const CACHE  = 'ibi-group-messenger-v6.5';
+const CACHE  = 'ibi-group-messenger-v6.6';
 const SHELL  = ['./'];          // cache the app shell only
 
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())
+    // Bypass the HTTP cache when precaching, otherwise a version bump can
+    // install the *previous* build's shell straight out of the browser cache.
+    caches.open(CACHE)
+      .then(c => c.addAll(SHELL.map(u => new Request(u, { cache: 'reload' }))))
+      .then(() => self.skipWaiting())
   );
 });
 
