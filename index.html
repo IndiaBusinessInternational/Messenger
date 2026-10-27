@@ -2168,6 +2168,13 @@
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
     }
+
+    /* v6.8 edge to edge on every screen size (Founder 27 Oct 2026): no centred 720px column on laptops.
+       The chat fills the window, 10px side padding, and bubbles keep a readable width on wide screens. */
+    html, body { overflow-x: clip; }
+    .app { max-width: none; margin: 0; box-shadow: none; }
+    .hdr, .chat, .input-bar, .pin-banner, .reply-bar { padding-left: 10px; padding-right: 10px; }
+    .msg, .sender-label { max-width: min(78%, 760px); }
   </style>
 </head>
 <body>
@@ -2189,7 +2196,7 @@
       </div>
 
       <div class="hdr__title-block" id="hdrTitleBlock">
-        <span class="hdr__name"><span class="hdr__name-text">IBI Group Messenger</span><span class="hdr__version" id="appVersion">v6.7</span></span>
+        <span class="hdr__name"><span class="hdr__name-text">IBI Group Messenger</span><span class="hdr__version" id="appVersion">v6.8</span></span>
       </div>
       </div>
       <div class="hdr__bar" id="hdrBar">
