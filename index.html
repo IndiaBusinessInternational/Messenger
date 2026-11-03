@@ -2175,6 +2175,16 @@
     .app { max-width: none; margin: 0; box-shadow: none; }
     .hdr, .chat, .input-bar, .pin-banner, .reply-bar { padding-left: 10px; padding-right: 10px; }
     .msg, .sender-label { max-width: min(78%, 760px); }
+
+    /* v6.12 centred conversation on laptops (Founder 3 Nov 2026: "in laptop, make it to the centre, not at the side").
+       Backgrounds still run edge to edge; header, messages and the typing bar share one centred 960px column. */
+    @media (min-width: 1000px) {
+      .hdr, .chat, .input-bar, .pin-banner, .reply-bar {
+        padding-left: max(10px, calc((100% - 960px) / 2));
+        padding-right: max(10px, calc((100% - 960px) / 2));
+      }
+      .msg, .sender-label { max-width: min(78%, 640px); }
+    }
   </style>
 </head>
 <body>
@@ -2196,7 +2206,7 @@
       </div>
 
       <div class="hdr__title-block" id="hdrTitleBlock">
-        <span class="hdr__name"><span class="hdr__name-text">IBI Group Messenger</span><span class="hdr__version" id="appVersion">v6.11</span></span>
+        <span class="hdr__name"><span class="hdr__name-text">IBI Group Messenger</span><span class="hdr__version" id="appVersion">v6.12</span></span>
       </div>
       </div>
       <div class="hdr__bar" id="hdrBar">
