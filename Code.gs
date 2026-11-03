@@ -54,6 +54,37 @@ const CONFIG = {
   BRAND_COLOR: '#00c5ff'
 };
 
+/* =====================================================================
+   ACCESS CODES (v6.11, Founder 3 Nov 2026: "Ajay should not view any message")
+   Every read and write needs a personal access code. The code decides
+   who is speaking, so nobody can type someone else's name.
+   The codes themselves live ONLY in Project Settings -> Script Properties
+   (this file is in a public repo):  CODE_CEO, CODE_ASWIN, CODE_AKASH.
+   A person without a property here has no access. To remove someone,
+   delete their property; to add someone, add a row below and a property.
+   ===================================================================== */
+const PEOPLE = [
+  { prop: 'CODE_CEO',   name: 'Dr T Sasimurugan ME.PhD., Founder, IBI' },
+  { prop: 'CODE_ASWIN', name: 'S. Aswin, IBI Manager- Packaging & Despatch' },
+  { prop: 'CODE_AKASH', name: 'S. Akash, IBI Manager - Cataloguing' }
+];
+
+/* the person a code belongs to, or null (also null when no codes are set: fail closed) */
+function _who(key) {
+  const k = String(key || '').trim();
+  if (k.length < 6) return null;
+  const props = PropertiesService.getScriptProperties().getProperties();
+  for (let i = 0; i < PEOPLE.length; i++) {
+    const code = String(props[PEOPLE[i].prop] || '').trim();
+    if (code.length >= 6 && code === k) return PEOPLE[i];
+  }
+  return null;
+}
+
+function _denied() {
+  return _json({ ok: false, error: 'ACCESS_CODE', message: 'A valid access code is needed.' });
+}
+
 const SHEET_HEADERS = [
   'messageId',   // unique ID generated client-side (for dedup)
   'timestamp',   // ISO 8601 server timestamp (when row was written)
@@ -87,6 +118,12 @@ function doPost(e) {
     try { payload = JSON.parse(e.postData.contents); }
     catch (err) { return _json({ ok: false, error: 'Invalid JSON body.' }); }
 
+    const who = _who(payload.key);
+    if (!who) return _denied();
+    // the access code, not the typed name, decides who is speaking
+    payload.sender = who.name;
+    payload.viewerName = who.name;
+
     const action = (payload.action || 'send').toLowerCase();
     if (action === 'delete')    return _handleDelete(payload);
     if (action === 'edit')      return _handleEdit(payload);
@@ -105,6 +142,10 @@ function doGet(e) {
   try {
     const params = (e && e.parameter) || {};
     const action = (params.action || 'status').toLowerCase();
+    if (action === 'status') return _statusPage();
+    const who = _who(params.key);
+    if (!who) return _denied();
+    if (action === 'whoami')   return _json({ ok: true, name: who.name });
     if (action === 'fetch')    return _handleFetch(params);
     if (action === 'receipts') return _handleGetReceipts(params);
     if (action === 'media')    return _handleMedia(params);
